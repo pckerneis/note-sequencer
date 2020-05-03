@@ -13,6 +13,49 @@ export class NoteGridComponent extends Component {
     super();
   }
 
+  public getSixteenthWidth(): number {
+    return this.width / (this.model.horizontalRange.max - this.model.horizontalRange.min);
+  }
+
+  public getTimeForScreenPos(pos: number): number {
+    let vMin = this.model.horizontalRange.min;
+    let sixteenth = this.getSixteenthWidth();
+    const x = this.getPosition().x;
+
+    pos -= x;                   // Local pos
+    pos += vMin * sixteenth;    // visible area offset
+
+    return (pos / sixteenth);
+  }
+
+  public getPitchAt(pos: number): number  {
+    let vMin = this.model.verticalRange.min;
+    let semi = this.getSemitoneHeight();
+    const y = this.getPosition().y;
+
+    pos -= y;          // Local position
+    pos -= vMin * semi;     // offset for visible area
+    pos = this.height - pos;     // Inversion
+    pos += semi * 0.5;      // offset to have the 'note' centred
+    return Math.round(pos / semi);    // Scaling
+  }
+
+  public getPositionForTime(time: number): number {
+    let vMin = this.model.horizontalRange.min;
+    let vMax = this.model.horizontalRange.max;
+    let vRange = vMax - vMin;
+    let sixteenth = this.width / vRange;
+
+    return (time - vMin) * sixteenth;
+  }
+
+  public getPositionForPitch(pitch: number): number {
+    let semiHeight = this.getSemitoneHeight();
+    return this.height - (pitch - this.model.verticalRange.min) * semiHeight;
+  }
+
+  //===============================================================================
+
   public drawHorizontalBackground(g: CanvasRenderingContext2D, sixteenth: number, vMin: number, vMax: number): void {
     let incr = this.getLockRatio();
 
@@ -87,8 +130,6 @@ export class NoteGridComponent extends Component {
   */
 
   public render(g: CanvasRenderingContext2D): void {
-    console.log('rendering grid');
-
     // Background
     g.fillStyle = '#ddd';
     g.fillRect(0, 0, this.width, this.height);
@@ -104,8 +145,7 @@ export class NoteGridComponent extends Component {
     // Vertical
     let vMin = this.model.verticalRange.min;
     let vMax = this.model.verticalRange.max;
-    let vRange = vMax - vMin;
-    let semiHeight = Math.ceil(this.height / vRange); // height for a single semitone
+    let semiHeight = this.getSemitoneHeight();
 
     if (semiHeight > MIN_SEMI_H) {
       this.drawSemiTonePattern(g, vMin, vMax, semiHeight);
@@ -122,15 +162,17 @@ export class NoteGridComponent extends Component {
 
   public drawOctaveLines(g: CanvasRenderingContext2D, vMin: number, vMax: number, semiHeight: number): void {
     g.fillStyle = '#888';
-    console.log('draw octave lines');
 
-    for (var i = 0; i < 128; i += 12) {
+    for (let i = 0; i < 128; i += 12) {
       if (i >= vMin && i <= vMax) {
         let y = this.height - (i - vMin) * semiHeight;
-        console.log('draw octave line at ' + y);
         g.fillRect(0, y, this.width, 1);
       }
     }
+  }
+
+  public getSemitoneHeight(): number {
+    return this.height / (this.model.verticalRange.max - this.model.verticalRange.min);
   }
 
   public drawSemiTonePattern(g: CanvasRenderingContext2D, vMin: number, vMax: number, semiHeight: number): void {

@@ -2,7 +2,10 @@ import {RootComponentHolder} from './BaseComponent';
 import {SequencerRoot} from './SequencerRoot';
 
 export const MIN_SEMI_H: number = 5;
+export const MAX_SEMI_H: number = 30;
 export const PITCH_PATTERN: number[] = [0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0];
+export const MIN_PITCH: number = 0;
+export const MAX_PITCH: number = 127;
 
 declare class ResizeObserver {
   constructor(...args: any[]);
@@ -35,7 +38,7 @@ export class NoteSequencer extends HTMLElement {
 
   private _shadowRoot: ShadowRoot;
   private _rootComponent: RootComponentHolder;
-  private _model: SequencerDisplayModel;
+  private readonly _model: SequencerDisplayModel;
 
   constructor() {
     super();

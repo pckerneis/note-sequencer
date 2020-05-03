@@ -51,7 +51,14 @@ export abstract class Component {
   private _wasPressed: boolean = false;
   private _rootHolder: RootComponentHolder;
 
-  constructor(private _bounds: ComponentBounds = new ComponentBounds()) {
+  protected constructor(private _bounds: ComponentBounds = new ComponentBounds()) {
+  }
+
+  private static createOffscreenCanvas(width: number, height: number): HTMLCanvasElement {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    return canvas;
   }
 
   public get width(): number {
@@ -66,8 +73,16 @@ export abstract class Component {
     this._rootHolder = holder;
   }
 
-  // Usual functions on comps
+  public getParentComponent(): Component {
+    return this._parent;
+  }
+
   public addAndMakeVisible(childComp: Component): void {
+    if (childComp._parent != null) {
+      throw new Error('A component cannot be added to multiple parents. ' +
+        'You first need to remove it from its previous parent');
+    }
+
     childComp._visible = true;
     this._children.push(childComp);
     childComp._parent = this;
@@ -78,7 +93,7 @@ export abstract class Component {
 
     if (idx >= 0) {
       childComp._visible = false;
-      childComp._parent = undefined;
+      childComp._parent = null;
       this._children.splice(idx, 1);
     }
   }
@@ -102,7 +117,6 @@ export abstract class Component {
   }
 
   public setBounds(newBounds: ComponentBounds): void {
-    console.log('bounds set');
     this._bounds = newBounds;
     this.resized();
   }
@@ -120,7 +134,6 @@ export abstract class Component {
     this._parent._children.push(this);
   }
 
-  // These are internal functions
   public hitTest(mousePosition: ComponentPosition): boolean {
     if (!this._visible)
       return false;
@@ -131,11 +144,7 @@ export abstract class Component {
       return false;
     }
 
-    if (mousePosition.y < pos.y || mousePosition.y > pos.y + this._bounds.height) {
-      return false;
-    }
-
-    return true;
+    return !(mousePosition.y < pos.y || mousePosition.y > pos.y + this._bounds.height);
   }
 
   public handleMouseMove(e: ComponentMouseEvent): void {
@@ -152,6 +161,18 @@ export abstract class Component {
     this.mouseMoved(e);
   }
 
+  public findComponentAt(position: ComponentPosition): Component {
+    for (let i = this._children.length; --i >= 0;) {
+      let c = this._children[i];
+
+      if (c.hitTest(position)) {
+        return c.findComponentAt(position);
+      }
+    }
+
+    return this;
+  }
+
   public handleMousePress(e: ComponentMouseEvent): void {
     for (let i = this._children.length; --i >= 0;) {
       let c = this._children[i];
@@ -165,7 +186,7 @@ export abstract class Component {
     e.originatingComp = this;
     this.mousePressed(e);
     this._wasPressed = true;
-  };
+  }
 
   public handleDoublePress(e: ComponentMouseEvent): void {
     if (!e.wasDragged && e.originatingComp != undefined)
@@ -212,44 +233,34 @@ export abstract class Component {
     this.doubleClicked(e);
   }
 
-  public repaint(): void {
+  public repaint(isOriginalRepaintTarget: boolean = true): void {
     this._needRepaint = true;
 
     // Mark all children so that they will repaint
-    for (let c of this._children)
-      c.repaint();
-
-    // Find root coponent
-    let root: Component = this;
-
-    while (root._parent != null) {
-      root = root._parent;
+    for (let c of this._children) {
+      c.repaint(false);
     }
 
-    // Render
-    if (root._rootHolder != null) {
-      root._rootHolder.render();
+    if (isOriginalRepaintTarget) {
+      // Find root component
+      let root: Component = this;
+
+      while (root._parent != null) {
+        root = root._parent;
+      }
+
+      // Render
+      if (root._rootHolder != null) {
+        root._rootHolder.render();
+      }
     }
-  }
-
-  public shouldRepaint(): boolean {
-    if (this._needRepaint)
-      return true;
-
-    for (let c of this._children)
-      if (c.shouldRepaint())
-        return true;
-
-    return false;
   }
 
   public paint(context: CanvasRenderingContext2D): void {
-    if (this._visible && this.shouldRepaint() && this._bounds.width > 0 && this._bounds.height > 0) {
-      let g = this.createOffscreenCanvas(this._bounds.width, this._bounds.height);
+    if (this._visible && this._needRepaint && this._bounds.width > 0 && this._bounds.height > 0) {
+      let g = Component.createOffscreenCanvas(this._bounds.width, this._bounds.height);
 
       this.render(g.getContext('2d'));
-
-      console.log('paint, render at y: ' + this._bounds.y);
 
       context.drawImage(g, this._bounds.x, this._bounds.y);
     }
@@ -266,6 +277,7 @@ export abstract class Component {
   }
 
   protected mousePressed(event: ComponentMouseEvent): void {
+    console.debug('pressed', this);
   }
 
   protected mouseReleased(event: ComponentMouseEvent): void {
@@ -286,13 +298,6 @@ export abstract class Component {
   protected abstract resized(): void;
 
   protected abstract render(g: CanvasRenderingContext2D): void;
-
-  private createOffscreenCanvas(width: number, height: number): HTMLCanvasElement {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    return canvas;
-  }
 }
 
 export class RootComponentHolder {
@@ -305,7 +310,67 @@ export class RootComponentHolder {
     this.canvas.width = width;
     this.canvas.height = height;
 
-    this.render();
+    let pressedComponent: Component = null;
+
+    const mousePositionRelativeToCanvas = (event: MouseEvent) => {
+      const canvasBounds = this.canvas.getBoundingClientRect();
+      const x = event.clientX - canvasBounds.x;
+      const y = event.clientY - canvasBounds.y;
+      return {x, y};
+    };
+
+    const hit = (event: MouseEvent, action: (hit: Component) => void) => {
+      const mousePos = mousePositionRelativeToCanvas(event);
+      const hitComponent = this.rootComponent.findComponentAt(mousePos);
+
+      if (hitComponent != null) {
+        action(hitComponent);
+      }
+    };
+
+    this.canvas.addEventListener('mousedown', (event) => hit(event, (component) => {
+      pressedComponent = component;
+
+      component.handleMousePress({
+        ...mousePositionRelativeToCanvas(event),
+        wasDragged: false,
+        originatingComp: component,
+      });
+    }));
+
+    this.canvas.addEventListener('mouseup', (event: MouseEvent) => {
+      if (pressedComponent != null) {
+        pressedComponent.handleMouseRelease({
+          ...mousePositionRelativeToCanvas(event),
+          wasDragged: false, // TODO
+          originatingComp: pressedComponent,
+        });
+
+        pressedComponent = null;
+      }
+    });
+
+    document.addEventListener('mousemove', (event: MouseEvent) => {
+      const {x, y} = mousePositionRelativeToCanvas(event);
+
+      hit(event, (component) => {
+        component.handleMouseMove({
+          x, y,
+          wasDragged: true, // TODO
+          originatingComp: component,
+        });
+      });
+
+      if (event.buttons > 0 && pressedComponent != null) {
+        pressedComponent.handleMouseDrag({
+          x, y,
+          wasDragged: true, // TODO
+          originatingComp: pressedComponent,
+        });
+      }
+
+      this.render();
+    });
   }
 
   public render(): void {

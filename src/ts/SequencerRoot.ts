@@ -15,7 +15,7 @@ export class SequencerRoot extends Component {
     this._grid = new NoteGridComponent(model);
     this.addAndMakeVisible(this._grid);
 
-    this._verticalRuler = new VerticalRuler(model);
+    this._verticalRuler = new VerticalRuler(model, this._grid);
     this.addAndMakeVisible(this._verticalRuler);
 
     this._horizontalRuler = new HorizontalRuler(model);
@@ -39,5 +39,7 @@ export class SequencerRoot extends Component {
   }
 
   public render(g: CanvasRenderingContext2D): void {
+    g.fillStyle = 'red';
+    g.fillRect(0, 0, this.width, this.height);
   }
 }

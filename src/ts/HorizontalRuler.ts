@@ -12,6 +12,9 @@ export class HorizontalRuler extends Component {
   protected render(g: CanvasRenderingContext2D): void {
     const bounds = this.getLocalBounds();
 
+    g.fillStyle = '#eee';
+    g.fillRect(0, 0, this.width, this.height);
+
     let vMin = this.model.horizontalRange.min;
     let vMax = this.model.horizontalRange.max;
     let visibleRange = vMax - vMin;
