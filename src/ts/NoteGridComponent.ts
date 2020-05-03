@@ -1,12 +1,19 @@
-import { Component } from './BaseComponent';
-import { SequencerDisplayModel, MIN_SEMI_H, PITCH_PATTERN } from './note-sequencer'
+import {Component} from './BaseComponent';
+import {MIN_SEMI_H, PITCH_PATTERN, SequencerDisplayModel} from './note-sequencer'
 
 export class NoteGridComponent extends Component {
+
+  // TODO: move into model or utility
+  public readonly adaptiveLabels: string[] = ['XL', 'X', 'M', 'S', 'XS'];
+  public readonly adaptiveValues: number[] = [1, .5, .25, .1, .05];
+  public adaptiveIndex: number = 3;
+  public adaptiveMode: boolean = true;
+
   constructor(private readonly model: SequencerDisplayModel) {
     super();
   }
 
-  drawHorizontalBackground(g: CanvasRenderingContext2D, sixteenth: number, vMin: number, vMax: number) {
+  public drawHorizontalBackground(g: CanvasRenderingContext2D, sixteenth: number, vMin: number, vMax: number): void {
     let incr = this.getLockRatio();
 
     if (incr <= 0)
@@ -79,7 +86,7 @@ export class NoteGridComponent extends Component {
   }
   */
 
-  render(g: CanvasRenderingContext2D): void {
+  public render(g: CanvasRenderingContext2D): void {
     console.log('rendering grid');
 
     // Background
@@ -106,13 +113,14 @@ export class NoteGridComponent extends Component {
       this.drawOctaveLines(g, vMin, vMax, semiHeight);
     }
 
+    // TODO
     /*
     lasso.drawLasso(g);
     this.drawNotes(g, semiHeight, sixteenth);
     */
   }
 
-  drawOctaveLines(g: CanvasRenderingContext2D, vMin: number, vMax: number, semiHeight: number) {
+  public drawOctaveLines(g: CanvasRenderingContext2D, vMin: number, vMax: number, semiHeight: number): void {
     g.fillStyle = '#888';
     console.log('draw octave lines');
 
@@ -125,7 +133,7 @@ export class NoteGridComponent extends Component {
     }
   }
 
-  drawSemiTonePattern(g: CanvasRenderingContext2D, vMin: number, vMax: number, semiHeight: number) {
+  public drawSemiTonePattern(g: CanvasRenderingContext2D, vMin: number, vMax: number, semiHeight: number): void {
     const yOffset = (vMin - Math.floor(vMin)) * semiHeight;
 
     for (let i = Math.floor(vMin); i < Math.ceil(vMax); ++i) {
@@ -143,16 +151,11 @@ export class NoteGridComponent extends Component {
     }
   }
 
-  resized(): void {
+  public resized(): void {
     this.repaint();
   }
 
-  adaptativeLabels = ["XL", "X", "M", "S", "XS"];
-  adaptativeValues = [1, .5, .25, .1, .05];
-  adaptativeIndex = 3;
-  adaptativeMode = true;
-
-  private getLockRatio() {
+  private getLockRatio(): number {
     let vMin = this.model.horizontalRange.min;
     let vMax = this.model.horizontalRange.max;
     let visibleRange = vMax - vMin;
@@ -160,8 +163,8 @@ export class NoteGridComponent extends Component {
 
     let ratio = 0;
 
-    if (/* adaptativeMode */ true) {
-      let desiredSpacing = this.adaptativeValues[this.adaptativeIndex] * this.height;
+    if (/* adaptiveMode */ true) {
+      let desiredSpacing = this.adaptiveValues[this.adaptiveIndex] * this.height;
 
       ratio = (16 * this.model.signature.upper) / this.model.signature.lower;
 

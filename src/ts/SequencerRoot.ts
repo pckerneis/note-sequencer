@@ -1,13 +1,13 @@
-import { Component } from './BaseComponent';
-import { NoteGridComponent } from './NoteGridComponent';
-import { HorizontalRuler } from './HorizontalRuler';
-import { VerticalRuler } from './VerticalRuler';
-import { SequencerDisplayModel } from './note-sequencer';
+import {Component} from './BaseComponent';
+import {HorizontalRuler} from './HorizontalRuler';
+import {SequencerDisplayModel} from './note-sequencer';
+import {NoteGridComponent} from './NoteGridComponent';
+import {VerticalRuler} from './VerticalRuler';
 
 export class SequencerRoot extends Component {
-  private _grid: NoteGridComponent;
-  private _verticalRuler: VerticalRuler;
-  private _horizontalRuler: HorizontalRuler;
+  private readonly _grid: NoteGridComponent;
+  private readonly _verticalRuler: VerticalRuler;
+  private readonly _horizontalRuler: HorizontalRuler;
 
   constructor(model: SequencerDisplayModel) {
     super();
@@ -22,7 +22,7 @@ export class SequencerRoot extends Component {
     this.addAndMakeVisible(this._horizontalRuler);
   }
 
-  resized(): void {
+  public resized(): void {
     const rulerWidth = 40;
     const rulerHeight = 40;
 
@@ -34,12 +34,10 @@ export class SequencerRoot extends Component {
 
     this._verticalRuler.setBounds(bounds.removeFromLeft(rulerWidth));
     this._grid.setBounds(bounds);
-        
+
     this.repaint();
   }
 
-  render(g: CanvasRenderingContext2D): void {
-    // g.fillStyle = '#00000005';
-    // g.fillRect(0, 0, this.width, this.height);
+  public render(g: CanvasRenderingContext2D): void {
   }
 }

@@ -1,5 +1,5 @@
-import { Component, ComponentMouseEvent } from './BaseComponent';
-import { SequencerDisplayModel, MIN_SEMI_H, PITCH_PATTERN } from './note-sequencer';
+import {Component} from './BaseComponent';
+import {SequencerDisplayModel} from './note-sequencer';
 
 export class HorizontalRuler extends Component {
   constructor(private readonly model: SequencerDisplayModel) {
@@ -48,13 +48,11 @@ export class HorizontalRuler extends Component {
 
       if (i % ratio == 0) {
         g.rect(x + 1, bounds.height * (1 - gradH), 1, 1);
-        
+
         g.fillStyle = '#000';
 
         const text = 'hey'; // owner.getStringForTime(i, true);
-        const textMaxWidth = minLabelSpacing;
-
-        g.fillText(text, x + 4, bounds.height - 5, textMaxWidth);
+        g.fillText(text, x + 4, bounds.height - 5, minLabelSpacing);
       }
     }
 

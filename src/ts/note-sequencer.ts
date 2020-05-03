@@ -1,11 +1,12 @@
-import { RootComponentHolder } from './BaseComponent';
-import { SequencerRoot } from './SequencerRoot';
+import {RootComponentHolder} from './BaseComponent';
+import {SequencerRoot} from './SequencerRoot';
 
 export const MIN_SEMI_H: number = 5;
 export const PITCH_PATTERN: number[] = [0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0];
 
 declare class ResizeObserver {
-  constructor(...args : any[]);
+  constructor(...args: any[]);
+
   public observe(...elements: HTMLElement[]): any;
 }
 
@@ -27,7 +28,7 @@ export interface SequencerDisplayModel {
 
 /**
  * A canvas-based note sequencer.
- * 
+ *
  * @noInheritDoc
  */
 export class NoteSequencer extends HTMLElement {
@@ -50,7 +51,7 @@ export class NoteSequencer extends HTMLElement {
     this._rootComponent = new RootComponentHolder(100, 100, new SequencerRoot(this._model));
 
     this._shadowRoot.append(this._rootComponent.canvas);
-    
+
     const styleElement = document.createElement('style');
     styleElement.innerText = CSS_STYLE;
     this._shadowRoot.append(styleElement);
@@ -64,15 +65,14 @@ export class NoteSequencer extends HTMLElement {
    * HTML tag name used for this element.
    */
   public static get tag(): string {
-    return "note-sequencer";
+    return 'note-sequencer';
   }
 
   /**
    * Observed HTML attributes (custom element implementation).
    */
   public static get observedAttributes(): string[] {
-    return [
-    ]; 
+    return [];
   }
 
   /**

@@ -1,4 +1,3 @@
-
 export interface ComponentPosition {
   x: number,
   y: number,
@@ -12,7 +11,7 @@ export class ComponentBounds {
     public height: number = 0) {
   }
 
-  removeFromLeft(amount: number): ComponentBounds {
+  public removeFromLeft(amount: number): ComponentBounds {
     amount = Math.max(0, Math.min(amount, this.width));
 
     const removed = new ComponentBounds(this.x, this.y, amount, this.height);
@@ -23,7 +22,7 @@ export class ComponentBounds {
     return removed;
   }
 
-  removeFromTop(amount: number): ComponentBounds {
+  public removeFromTop(amount: number): ComponentBounds {
     amount = Math.max(0, Math.min(amount, this.height));
 
     const removed = new ComponentBounds(this.x, this.y, this.width, amount);
@@ -42,17 +41,8 @@ export interface ComponentMouseEvent {
   wasDragged: boolean,
 }
 
-const emptyBounds = () => {
-  return {
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-  };
-};
-
 export abstract class Component {
-  public mousePointer = "default";
+  public mousePointer: 'default' = 'default';
 
   private _children: Component[] = [];
   private _parent: Component = null;
@@ -61,7 +51,7 @@ export abstract class Component {
   private _wasPressed: boolean = false;
   private _rootHolder: RootComponentHolder;
 
-  constructor(private _bounds = new ComponentBounds()) {
+  constructor(private _bounds: ComponentBounds = new ComponentBounds()) {
   }
 
   public get width(): number {
@@ -76,26 +66,14 @@ export abstract class Component {
     this._rootHolder = holder;
   }
 
-  // These functions should be overriden by sub comps
-  protected mouseMoved(event: ComponentMouseEvent): void {}
-  protected mousePressed(event: ComponentMouseEvent): void {}
-  protected mouseReleased(event: ComponentMouseEvent): void {}
-  protected mouseDragged(event: ComponentMouseEvent): void {}
-  protected clicked(event: ComponentMouseEvent): void {}
-  protected doublePressed(event: ComponentMouseEvent): void {}
-  protected doubleClicked(event: ComponentMouseEvent): void {}
-
-  protected abstract resized(): void;
-  protected abstract render(g: CanvasRenderingContext2D): void;
-
   // Usual functions on comps
-  addAndMakeVisible(childComp: Component) {
+  public addAndMakeVisible(childComp: Component): void {
     childComp._visible = true;
     this._children.push(childComp);
     childComp._parent = this;
   }
 
-  removeChild(childComp: Component) {
+  public removeChild(childComp: Component): void {
     let idx = this._children.indexOf(childComp);
 
     if (idx >= 0) {
@@ -105,7 +83,7 @@ export abstract class Component {
     }
   }
 
-  getPosition(): ComponentPosition {
+  public getPosition(): ComponentPosition {
     let x = this._bounds.x;
     let y = this._bounds.y;
     let parent = this._parent;
@@ -116,20 +94,20 @@ export abstract class Component {
       parent = parent._parent;
     }
 
-    return { x, y };
+    return {x, y};
   }
 
-  getLocalBounds(): ComponentBounds {
+  public getLocalBounds(): ComponentBounds {
     return new ComponentBounds(0, 0, this.width, this.height);
   }
 
-  setBounds(newBounds: ComponentBounds) {
+  public setBounds(newBounds: ComponentBounds): void {
     console.log('bounds set');
     this._bounds = newBounds;
     this.resized();
   }
 
-  toFront(): void {
+  public toFront(): void {
     if (this._parent == undefined)
       return;
 
@@ -143,22 +121,28 @@ export abstract class Component {
   }
 
   // These are internal functions
-  hitTest(mousePosition: ComponentPosition): boolean {
+  public hitTest(mousePosition: ComponentPosition): boolean {
     if (!this._visible)
       return false;
 
     let pos = this.getPosition();
 
-    if (mousePosition.x < pos.x || mousePosition.x > pos.x + this._bounds.width) return false;
-    if (mousePosition.y < pos.y || mousePosition.y > pos.y + this._bounds.height) return false;
+    if (mousePosition.x < pos.x || mousePosition.x > pos.x + this._bounds.width) {
+      return false;
+    }
+
+    if (mousePosition.y < pos.y || mousePosition.y > pos.y + this._bounds.height) {
+      return false;
+    }
+
     return true;
   }
 
-  handleMouseMove(e: ComponentMouseEvent) {
+  public handleMouseMove(e: ComponentMouseEvent): void {
     for (let i = this._children.length; --i >= 0;) {
       let c = this._children[i];
 
-      if (c.hitTest({ x: e.x, y: e.y })) {
+      if (c.hitTest({x: e.x, y: e.y})) {
         c.handleMouseMove(e);
         return;
       }
@@ -168,11 +152,11 @@ export abstract class Component {
     this.mouseMoved(e);
   }
 
-  handleMousePress = function (e: ComponentMouseEvent) {
-    for (let i = this.children.length; --i >= 0;) {
-      let c = this.children[i];
+  public handleMousePress(e: ComponentMouseEvent): void {
+    for (let i = this._children.length; --i >= 0;) {
+      let c = this._children[i];
 
-      if (c.hitTest()) {
+      if (c.hitTest(e)) {
         c.handleMousePress(e);
         return;
       }
@@ -180,20 +164,20 @@ export abstract class Component {
 
     e.originatingComp = this;
     this.mousePressed(e);
-    this.wasPressed = true;
+    this._wasPressed = true;
   };
 
-  handleDoublePress(e: ComponentMouseEvent) {
+  public handleDoublePress(e: ComponentMouseEvent): void {
     if (!e.wasDragged && e.originatingComp != undefined)
       e.originatingComp.doublePressed(e);
   }
 
-  handleClick(e: ComponentMouseEvent) {
+  public handleClick(e: ComponentMouseEvent): void {
     if (!e.wasDragged && e.originatingComp != undefined)
       e.originatingComp.clicked(e);
   }
 
-  handleMouseDrag(e: ComponentMouseEvent) {
+  public handleMouseDrag(e: ComponentMouseEvent): void {
     for (let i = this._children.length; --i >= 0;)
       this._children[i].handleMouseDrag(e);
 
@@ -201,7 +185,7 @@ export abstract class Component {
       this.mouseDragged(e);
   }
 
-  handleMouseRelease(e: ComponentMouseEvent) {
+  public handleMouseRelease(e: ComponentMouseEvent): void {
     for (let i = this._children.length; --i >= 0;)
       this._children[i].handleMouseRelease(e);
 
@@ -212,7 +196,7 @@ export abstract class Component {
   }
 
   // Should be triggered on 2nd mouse press instead of release...
-  handleDoubleClick(e: ComponentMouseEvent) {
+  public handleDoubleClick(e: ComponentMouseEvent): void {
     if (e.wasDragged)
       return;
 
@@ -228,7 +212,7 @@ export abstract class Component {
     this.doubleClicked(e);
   }
 
-  repaint() {
+  public repaint(): void {
     this._needRepaint = true;
 
     // Mark all children so that they will repaint
@@ -238,7 +222,7 @@ export abstract class Component {
     // Find root coponent
     let root: Component = this;
 
-    while(root._parent != null) {
+    while (root._parent != null) {
       root = root._parent;
     }
 
@@ -248,7 +232,7 @@ export abstract class Component {
     }
   }
 
-  shouldRepaint() {
+  public shouldRepaint(): boolean {
     if (this._needRepaint)
       return true;
 
@@ -259,7 +243,7 @@ export abstract class Component {
     return false;
   }
 
-  public paint(context: CanvasRenderingContext2D) {
+  public paint(context: CanvasRenderingContext2D): void {
     if (this._visible && this.shouldRepaint() && this._bounds.width > 0 && this._bounds.height > 0) {
       let g = this.createOffscreenCanvas(this._bounds.width, this._bounds.height);
 
@@ -276,6 +260,32 @@ export abstract class Component {
 
     this._needRepaint = false;
   }
+
+  // These functions should be overriden by sub comps
+  protected mouseMoved(event: ComponentMouseEvent): void {
+  }
+
+  protected mousePressed(event: ComponentMouseEvent): void {
+  }
+
+  protected mouseReleased(event: ComponentMouseEvent): void {
+  }
+
+  protected mouseDragged(event: ComponentMouseEvent): void {
+  }
+
+  protected clicked(event: ComponentMouseEvent): void {
+  }
+
+  protected doublePressed(event: ComponentMouseEvent): void {
+  }
+
+  protected doubleClicked(event: ComponentMouseEvent): void {
+  }
+
+  protected abstract resized(): void;
+
+  protected abstract render(g: CanvasRenderingContext2D): void;
 
   private createOffscreenCanvas(width: number, height: number): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
@@ -298,12 +308,12 @@ export class RootComponentHolder {
     this.render();
   }
 
-  render(): void {
+  public render(): void {
     // Recursively paint components that need to be refreshed
     this.rootComponent.paint(this.canvas.getContext('2d'));
   }
 
-  resize(width: number, height: number) {
+  public resize(width: number, height: number): void {
     this.canvas.width = width;
     this.canvas.height = height;
 
