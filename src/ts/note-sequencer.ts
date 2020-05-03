@@ -1,7 +1,7 @@
 import {RootComponentHolder} from './BaseComponent';
 import {SequencerRoot} from './SequencerRoot';
 
-export const MIN_SEMI_H: number = 5;
+export const MIN_SEMI_H: number = 4;
 export const MAX_SEMI_H: number = 30;
 export const PITCH_PATTERN: number[] = [0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0];
 export const MIN_PITCH: number = 0;
@@ -24,8 +24,10 @@ interface TimeSignature {
 }
 
 export interface SequencerDisplayModel {
+  zoomSensitivity: number;
   verticalRange: Range,
-  horizontalRange: Range,
+  visibleTimeRange: Range,
+  maxTimeRange: Range,
   signature: TimeSignature,
 }
 
@@ -45,8 +47,10 @@ export class NoteSequencer extends HTMLElement {
 
     this._model = {
       verticalRange: {min: 58, max: 58 + 24},
-      horizontalRange: {min: 0, max: 16},
+      visibleTimeRange: {min: 0, max: 16},
+      maxTimeRange: {min: 0, max: 32},
       signature: {upper: 4, lower: 4},
+      zoomSensitivity: 30,
     };
 
     this._shadowRoot = this.attachShadow({mode: 'closed'});

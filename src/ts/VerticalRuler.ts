@@ -15,8 +15,6 @@ export class VerticalRuler extends Component {
   private isPreviewingNote: boolean = false;
   private lastPreviewedPitch: number = null;
 
-  private readonly zoomSensitivity: number = 30;
-
   constructor(private readonly model: SequencerDisplayModel, private grid: NoteGridComponent) {
     super();
   }
@@ -47,10 +45,8 @@ export class VerticalRuler extends Component {
       this.lastMouseX = event.x;
 
       if (this.shouldTranslate(xOffset, yOffset)) {
-        console.log('translating');
         this.translate(yOffset);
       } else {
-        console.log('zooming');
         if (xOffset > 0) {
           this.zoomIn();
         } else {
@@ -150,7 +146,7 @@ export class VerticalRuler extends Component {
     const semiHeight = this.grid.getSemitoneHeight();
 
     if (semiHeight < MAX_SEMI_H) {
-      const zoomAmount = range / this.zoomSensitivity;
+      const zoomAmount = range / this.model.zoomSensitivity;
 
       this.model.verticalRange.min += zoomAmount;
       this.model.verticalRange.max -= zoomAmount;
@@ -163,7 +159,7 @@ export class VerticalRuler extends Component {
     const vMin = this.model.verticalRange.min;
     const vMax = this.model.verticalRange.max;
     const range = vMax - vMin;
-    const zoomAmount = range / this.zoomSensitivity;
+    const zoomAmount = range / this.model.zoomSensitivity;
 
     this.model.verticalRange.min -= zoomAmount;
     this.model.verticalRange.max += zoomAmount;
@@ -211,9 +207,6 @@ export class VerticalRuler extends Component {
       this.consecutiveVerticalDrag++;
       this.consecutiveHorizontalDrag = 0;
     }
-
-    console.log('consec h ' + this.consecutiveHorizontalDrag);
-    console.log('consec v ' + this.consecutiveVerticalDrag);
 
     if (this.currentlyTranslating) {
       const shouldZoom = Math.abs(xOffset) > Math.abs(changeThreshold + yOffset)

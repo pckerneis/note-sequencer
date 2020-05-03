@@ -14,11 +14,11 @@ export class NoteGridComponent extends Component {
   }
 
   public getSixteenthWidth(): number {
-    return this.width / (this.model.horizontalRange.max - this.model.horizontalRange.min);
+    return this.width / (this.model.visibleTimeRange.max - this.model.visibleTimeRange.min);
   }
 
   public getTimeForScreenPos(pos: number): number {
-    let vMin = this.model.horizontalRange.min;
+    let vMin = this.model.visibleTimeRange.min;
     let sixteenth = this.getSixteenthWidth();
     const x = this.getPosition().x;
 
@@ -41,8 +41,8 @@ export class NoteGridComponent extends Component {
   }
 
   public getPositionForTime(time: number): number {
-    let vMin = this.model.horizontalRange.min;
-    let vMax = this.model.horizontalRange.max;
+    let vMin = this.model.visibleTimeRange.min;
+    let vMax = this.model.visibleTimeRange.max;
     let vRange = vMax - vMin;
     let sixteenth = this.width / vRange;
 
@@ -135,8 +135,8 @@ export class NoteGridComponent extends Component {
     g.fillRect(0, 0, this.width, this.height);
 
     // Horizontal
-    let hMin = this.model.horizontalRange.min;
-    let hMax = this.model.horizontalRange.max;
+    let hMin = this.model.visibleTimeRange.min;
+    let hMax = this.model.visibleTimeRange.max;
     let hRange = hMax - hMin;
     let sixteenth = this.width / hRange;
 
@@ -197,9 +197,38 @@ export class NoteGridComponent extends Component {
     this.repaint();
   }
 
+  public getTimeAsMBS(t: number): number[] {
+    let denominator = (16 / this.model.signature.lower);
+    let b = Math.floor(t / denominator);
+
+    let s = t - (b * denominator);
+    let m = Math.floor (b / this.model.signature.upper);
+    b -= (m * this.model.signature.upper);
+
+    return [m, b, s];
+  }
+
+  public getStringForTime(time: number, withOriginOne: boolean): string {
+    let mbs = this.getTimeAsMBS(time);
+    let m = mbs[0];
+    let b = mbs[1];
+    let s = mbs[2];
+
+    if (withOriginOne) {
+      m++;
+      b++;
+      s++;
+    }
+
+    let useSixteenth = s != 1;
+    let useBeats = useSixteenth || b != 1;
+
+    return m + (useBeats ? "." + b : "") + (useSixteenth ? "." + Math.floor(s) : "");
+  }
+
   private getLockRatio(): number {
-    let vMin = this.model.horizontalRange.min;
-    let vMax = this.model.horizontalRange.max;
+    let vMin = this.model.visibleTimeRange.min;
+    let vMax = this.model.visibleTimeRange.max;
     let visibleRange = vMax - vMin;
     let sixteenth = this.width / visibleRange;
 

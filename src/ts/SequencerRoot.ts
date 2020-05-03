@@ -18,7 +18,7 @@ export class SequencerRoot extends Component {
     this._verticalRuler = new VerticalRuler(model, this._grid);
     this.addAndMakeVisible(this._verticalRuler);
 
-    this._horizontalRuler = new HorizontalRuler(model);
+    this._horizontalRuler = new HorizontalRuler(model, this._grid);
     this.addAndMakeVisible(this._horizontalRuler);
   }
 
@@ -39,7 +39,7 @@ export class SequencerRoot extends Component {
   }
 
   public render(g: CanvasRenderingContext2D): void {
-    g.fillStyle = 'red';
+    g.fillStyle = '#eee';
     g.fillRect(0, 0, this.width, this.height);
   }
 }
