@@ -40,6 +40,7 @@ export interface ComponentMouseEvent {
   y: number,
   originatingComp: Component,
   wasDragged: boolean,
+  modifiers: {shift: boolean, option: boolean}
 }
 
 export abstract class Component {
@@ -354,6 +355,7 @@ export class RootComponentHolder {
         y: mouseDownPos.y,
         originatingComp: component,
         wasDragged,
+        modifiers: {shift: event.shiftKey, option: event.ctrlKey},
       });
 
       if (lastClickTime == null || mouseDownTime > lastClickTime + DOUBLE_PRESS_INTERVAL) {
@@ -371,6 +373,7 @@ export class RootComponentHolder {
           y: mouseDownPos.y,
           originatingComp: component,
           wasDragged,
+          modifiers: {shift: event.shiftKey, option: event.ctrlKey},
         });
 
         consecutivePressCount = 0;
@@ -393,6 +396,7 @@ export class RootComponentHolder {
           y: mouseUpPos.y,
           originatingComp: pressedComponent,
           wasDragged,
+          modifiers: {shift: event.shiftKey, option: event.ctrlKey},
         });
 
         if (mouseUpTime < mouseDownTime + CLICK_INTERVAL
@@ -405,6 +409,7 @@ export class RootComponentHolder {
             y: mouseUpPos.y,
             originatingComp: pressedComponent,
             wasDragged,
+            modifiers: {shift: event.shiftKey, option: event.ctrlKey},
           });
 
           if (lastClickTime == null || mouseUpTime > lastClickTime + DOUBLE_CLICK_INTERVAL) {
@@ -422,6 +427,7 @@ export class RootComponentHolder {
               y: mouseUpPos.y,
               originatingComp: pressedComponent,
               wasDragged,
+              modifiers: {shift: event.shiftKey, option: event.ctrlKey},
             });
 
             consecutiveClickCount = 0;
@@ -449,6 +455,7 @@ export class RootComponentHolder {
           x, y,
           originatingComp: component,
           wasDragged,
+          modifiers: {shift: event.shiftKey, option: event.ctrlKey},
         });
       });
 
@@ -458,6 +465,7 @@ export class RootComponentHolder {
           x, y,
           originatingComp: pressedComponent,
           wasDragged,
+          modifiers: {shift: event.shiftKey, option: event.ctrlKey},
         });
       }
 

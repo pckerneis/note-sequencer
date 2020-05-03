@@ -250,11 +250,8 @@ export class NoteGridComponent extends Component {
 
     let existingNote = this.findNoteAt(local);
 
-    // TODO
-    const isShiftKeyDown = false;
-
     if (existingNote == null) {
-      if (! isShiftKeyDown)
+      if (! event.modifiers.shift)
         this._selectedSet.deselectAll();
 
       // TODO
@@ -265,7 +262,7 @@ export class NoteGridComponent extends Component {
       return;
     }
 
-    this._mouseDownResult = this._selectedSet.addToSelectionMouseDown(existingNote, isShiftKeyDown);
+    this._mouseDownResult = this._selectedSet.addToSelectionMouseDown(existingNote, event.modifiers.shift);
     this._dragMode = this.getDragActionForNoteAt (local, existingNote);
 
     this._draggedItem = existingNote;
@@ -287,10 +284,7 @@ export class NoteGridComponent extends Component {
       s.duration = Math.max (0, s.duration);
     }
 
-    // TODO
-    const isShiftKeyDown = false;
-
-    this._selectedSet.addToSelectionMouseUp(event.wasDragged, isShiftKeyDown, this._mouseDownResult);
+    this._selectedSet.addToSelectionMouseUp(event.wasDragged, event.modifiers.shift, this._mouseDownResult);
 
     this.removeOverlaps (true);
 
@@ -321,11 +315,8 @@ export class NoteGridComponent extends Component {
     this._draggedItem.pitch = Math.round(this._initialPosition.pitch - scaledY);
     this._draggedItem.time = this._initialPosition.time + scaledX;
 
-    // TODO
-    const isOptionKeyDown = false;
-
     // snap to grid
-    if (! isOptionKeyDown)
+    if (! event.modifiers.option)
       this._draggedItem.time = this.snapToGrid (this._draggedItem.time);
 
     // Now we determine the actual offset
@@ -413,10 +404,7 @@ export class NoteGridComponent extends Component {
     this._draggedItem.duration = this._initialDuration + scaledX;
 
     // snap to grid
-    // TODO
-    const isOptionKeyDown = false;
-    
-    if (! isOptionKeyDown) {
+    if (! event.modifiers.option) {
       let snappedEndPoint = this.snapToGrid(this._draggedItem.time + this._draggedItem.duration);
       this._draggedItem.duration = snappedEndPoint - this._draggedItem.time;
       this._draggedItem.duration = Math.max (0, this._draggedItem.duration);
@@ -461,9 +449,7 @@ export class NoteGridComponent extends Component {
     this._draggedItem.duration = Math.max (0, this._initialDuration - scaledX);
 
     // snap to grid
-    // TODO
-    const isOptionKeyDown = false;
-    if (!isOptionKeyDown && this._draggedItem.duration > 0) {
+    if (!event.modifiers.option && this._draggedItem.duration > 0) {
       this._draggedItem.time = this.snapToGrid(this._draggedItem.time);
       this._draggedItem.duration = Math.max(0, this._initialDuration - (this._draggedItem.time - this._initialStart));
     }
