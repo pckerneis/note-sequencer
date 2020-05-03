@@ -1,0 +1,32 @@
+{ 
+  "compilerOptions": {
+    "target": "es2015",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "removeComments": false,
+    "noImplicitAny": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "esModuleInterop": true
+  },
+  "include": [
+      "src/ts/**/*"
+  ],
+  "exclude": [ "node_modules" ],
+  "typedocOptions": {
+    "inputFiles": [
+      "./src/ts/piano-keys.ts"
+    ],
+    "mode": "module",
+    "out": "doc",
+    "name": "PianoKeys API documentation",
+    "includeVersion": true,
+    "excludePrivate": true,
+    "excludeNotExported": true,
+    "exclude": "**/*+(index|.spec|.e2e|.test).ts",
+    "readme": "./docs/README.md"
+  }
+}
+  

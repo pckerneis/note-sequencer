@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+
+body {
+  background: rgb(246, 246, 247);
+  font-family: 'Roboto', Arial, sans-serif;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+body * {
+  user-select: none;
+}
+
+button {
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  background: none;
+  font-size: 14px;
+  padding: 4px 10px;
+  margin: 0 5px;
+  border-radius: 4px;
+}
+
+button:hover:not([disabled]) {
+  border: 1px solid rgba(0, 0, 0, 0.9);
+}
+
+select {
+  margin: 0 5px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.full-page {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  min-width: 400px;
+  min-height: 300px;
+}
+
+.section {
+  margin: 20px auto auto;
+  width: 80%;
+  max-width: 800px;
+}
+
+note-sequencer {
+  box-shadow: 0 0 40px 0 rgba(0, 0, 0, 0.28);
+  height: 100px;
+  width: 100%;
+  height: 300px;
+}
+
+label {
+  font-family: monospace;
+  font-weight: bold;
+  color: #5c0000;
+  white-space: nowrap;
+}
+
+pre {
+  background: #efefef;
+  box-shadow: inset 2px 2px 5px 0 rgba(0, 0, 0, 0.1);
+  padding: 8px;
+}
+
+#code {
+  user-select: text;
+  white-space: pre-wrap;
+}
+
+.github-link {
+  text-align: right;
+  position: relative;
+}
+/*====================================*/
+/*              Other
+/*====================================*/
+/* scrollbar */
+/* http://webkit-scroll-gen.sourceforge.net/ */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00000018;
+  border: none;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0000002d;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: #00000042;
+}
+
+::-webkit-scrollbar-track {
+  background: #00000000;
+  border: none;
+}
+
+::-webkit-scrollbar-track:hover {
+  background: #0000000c;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
