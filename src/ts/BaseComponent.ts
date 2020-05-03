@@ -272,12 +272,11 @@ export abstract class Component {
     this._needRepaint = false;
   }
 
-  // These functions should be overriden by sub comps
+  // These functions should be overridden by sub comps
   protected mouseMoved(event: ComponentMouseEvent): void {
   }
 
   protected mousePressed(event: ComponentMouseEvent): void {
-    console.debug('pressed', this);
   }
 
   protected mouseReleased(event: ComponentMouseEvent): void {
@@ -300,6 +299,14 @@ export abstract class Component {
   protected abstract render(g: CanvasRenderingContext2D): void;
 }
 
+const CLICK_MAX_DISTANCE = 5;
+const CLICK_INTERVAL = 200;
+const DOUBLE_CLICK_INTERVAL = 500;
+
+function squaredDistance(x1: number, y1: number, x2: number, y2: number): number {
+  return (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+}
+
 export class RootComponentHolder {
   public readonly canvas: HTMLCanvasElement;
 
@@ -311,6 +318,13 @@ export class RootComponentHolder {
     this.canvas.height = height;
 
     let pressedComponent: Component = null;
+    let mouseDownPos: ComponentPosition;
+    let mouseUpPos: ComponentPosition;
+    let mouseDownTime: number;
+    let mouseUpTime: number;
+    let mouseWasDragged: boolean = false;
+    let consecutiveClickCount: number = 0;
+    let lastClickTime: number;
 
     const mousePositionRelativeToCanvas = (event: MouseEvent) => {
       const canvasBounds = this.canvas.getBoundingClientRect();
@@ -330,33 +344,80 @@ export class RootComponentHolder {
 
     this.canvas.addEventListener('mousedown', (event) => hit(event, (component) => {
       pressedComponent = component;
+      mouseDownPos = mousePositionRelativeToCanvas(event);
+      mouseDownTime = performance.now();
 
       component.handleMousePress({
-        ...mousePositionRelativeToCanvas(event),
+        x: mouseDownPos.x,
+        y: mouseDownPos.y,
         wasDragged: false,
         originatingComp: component,
       });
     }));
 
     this.canvas.addEventListener('mouseup', (event: MouseEvent) => {
+      mouseUpPos = mousePositionRelativeToCanvas(event);
+      mouseUpTime = performance.now();
+
+      if (mouseDownPos != null) {
+        mouseWasDragged = squaredDistance(mouseDownPos.x, mouseDownPos.y, mouseUpPos.x, mouseUpPos.y)
+          > CLICK_MAX_DISTANCE * CLICK_MAX_DISTANCE;
+      }
+
       if (pressedComponent != null) {
         pressedComponent.handleMouseRelease({
-          ...mousePositionRelativeToCanvas(event),
-          wasDragged: false, // TODO
+          x: mouseUpPos.x,
+          y: mouseUpPos.y,
+          wasDragged: mouseWasDragged,
           originatingComp: pressedComponent,
         });
 
+        if (mouseUpTime < mouseDownTime + CLICK_INTERVAL
+          && ! mouseWasDragged) {
+          pressedComponent.handleClick({
+            x: mouseUpPos.x,
+            y: mouseUpPos.y,
+            wasDragged: mouseWasDragged,
+            originatingComp: pressedComponent,
+          });
+
+          if (lastClickTime == null || mouseUpTime > lastClickTime + DOUBLE_CLICK_INTERVAL) {
+            consecutiveClickCount = 1;
+          } else {
+            consecutiveClickCount++;
+          }
+
+          if (consecutiveClickCount == 2) {
+            pressedComponent.handleDoubleClick({
+              x: mouseUpPos.x,
+              y: mouseUpPos.y,
+              wasDragged: mouseWasDragged,
+              originatingComp: pressedComponent,
+            });
+
+            consecutiveClickCount = 0;
+          }
+        }
+
         pressedComponent = null;
+        lastClickTime = performance.now();
       }
+
+      mouseWasDragged = false;
     });
 
     document.addEventListener('mousemove', (event: MouseEvent) => {
       const {x, y} = mousePositionRelativeToCanvas(event);
 
+      if (mouseDownPos != null) {
+        mouseWasDragged = squaredDistance(mouseDownPos.x, mouseDownPos.y, x, y)
+          > CLICK_MAX_DISTANCE * CLICK_MAX_DISTANCE;
+      }
+
       hit(event, (component) => {
         component.handleMouseMove({
           x, y,
-          wasDragged: true, // TODO
+          wasDragged: mouseWasDragged,
           originatingComp: component,
         });
       });
@@ -364,7 +425,7 @@ export class RootComponentHolder {
       if (event.buttons > 0 && pressedComponent != null) {
         pressedComponent.handleMouseDrag({
           x, y,
-          wasDragged: true, // TODO
+          wasDragged: mouseWasDragged,
           originatingComp: pressedComponent,
         });
       }
