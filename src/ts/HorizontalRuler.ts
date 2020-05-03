@@ -11,6 +11,43 @@ export class HorizontalRuler extends Component {
     super();
   }
 
+
+  public mousePressed(event: ComponentMouseEvent): void {
+    this.beingDragged = true;
+    this.lastMouseX = event.x;
+    this.lastMouseY = event.y;
+  }
+
+  public doubleClicked(event: ComponentMouseEvent): void {
+    this.model.visibleTimeRange.min = 0;
+    this.model.visibleTimeRange.max = this.model.maxTimeRange.max;
+    this.getParentComponent().repaint();
+  }
+
+  public mouseReleased(event: ComponentMouseEvent): void {
+    this.beingDragged = false;
+  }
+
+  public mouseDragged(event: ComponentMouseEvent): void {
+    if (this.beingDragged) {
+      let xOffset = event.x - this.lastMouseX;
+      this.lastMouseX = event.x;
+      this.translate(-xOffset);
+
+      let yOffset = event.y - this.lastMouseY;
+      this.lastMouseY = event.y;
+
+      if (Math.abs(yOffset) >= 3) {
+        if (yOffset > 0)
+          this.zoomIn();
+        else if (yOffset < 0)
+          this.zoomOut();
+      }
+
+      this.getParentComponent().repaint();
+    }
+  }
+
   protected resized(): void {
   }
 
@@ -67,43 +104,6 @@ export class HorizontalRuler extends Component {
     // Bottom corner
     g.fillStyle = '#00000030';
     g.fillRect(0, bounds.height - 1, bounds.width, 1);
-  }
-
-
-  protected mousePressed(event: ComponentMouseEvent): void {
-    this.beingDragged = true;
-    this.lastMouseX = event.x;
-    this.lastMouseY = event.y;
-  }
-
-  protected doubleClicked(event: ComponentMouseEvent): void {
-    this.model.visibleTimeRange.min = 0;
-    this.model.visibleTimeRange.max = this.model.maxTimeRange.max;
-    this.getParentComponent().repaint();
-  }
-
-  protected mouseReleased(event: ComponentMouseEvent): void {
-    this.beingDragged = false;
-  }
-
-  protected mouseDragged(event: ComponentMouseEvent): void {
-    if (this.beingDragged) {
-      let xOffset = event.x - this.lastMouseX;
-      this.lastMouseX = event.x;
-      this.translate(-xOffset);
-
-      let yOffset = event.y - this.lastMouseY;
-      this.lastMouseY = event.y;
-
-      if (Math.abs(yOffset) >= 3) {
-        if (yOffset > 0)
-          this.zoomIn();
-        else if (yOffset < 0)
-          this.zoomOut();
-      }
-
-      this.getParentComponent().repaint();
-    }
   }
 
   private zoomIn(): void {

@@ -1,6 +1,6 @@
 import {Component, ComponentBounds, ComponentMouseEvent, ComponentPosition} from './BaseComponent';
 import {LassoSelector} from './LassoSelector';
-import {MIN_SEMI_H, PITCH_PATTERN, SequencerDisplayModel} from './note-sequencer'
+import {MAX_PITCH, MIN_SEMI_H, PITCH_PATTERN, SequencerDisplayModel} from './note-sequencer'
 import {SelectedItemSet} from './SelectedItemSet';
 
 interface Note {
@@ -306,7 +306,7 @@ export class NoteGridComponent extends Component {
   }
 
   public moveSelection(event: ComponentMouseEvent): void {
-    if (this._draggedItem == null)
+    if (this._draggedItem == null || this._selectedSet.getItems().length == 0)
       return;
 
     let currentPosition = {
@@ -322,20 +322,45 @@ export class NoteGridComponent extends Component {
       y: event.y - event.positionAtMouseDown.y,
     };
 
-    let scaledX = dragOffset.x / this.getSixteenthWidth();
-    let scaledY = dragOffset.y / this.getSemitoneHeight();
+    /*
+    let minOffset: ComponentPosition = { x: Infinity, y: Infinity };
+    let maxOffset: ComponentPosition = { x: -Infinity, y: -Infinity };
+
+    this._selectedSet.getItems().forEach((note) => {
+      minOffset = {
+        x: Math.min(-(note.time - this.model.maxTimeRange.min), minOffset.x),
+        y: 0, //Math.min(-(note.pitch + 1), minOffset.y),
+      };
+
+      maxOffset = {
+        x: Math.max((this.model.maxTimeRange.max - note.time), maxOffset.x),
+        y: 0, //Math.max((MAX_PITCH - note.pitch), maxOffset.y),
+      };
+    });
+
+    console.log(minOffset, maxOffset);
+
+    const scaledX = Math.max(minOffset.x, Math.min(dragOffset.x / this.getSixteenthWidth(), maxOffset.x));
+    const scaledY = Math.max(minOffset.y, Math.min(dragOffset.y / this.getSemitoneHeight(), maxOffset.y));
+
+    console.log(scaledX, scaledY);
+     */
+
+    const scaledX = dragOffset.x / this.getSixteenthWidth();
+    const scaledY = dragOffset.y / this.getSemitoneHeight();
 
     // Apply translate to itemDragged
     this._draggedItem.pitch = Math.round(this._initialPosition.pitch - scaledY);
     this._draggedItem.time = this._initialPosition.time + scaledX;
 
-    // snap to grid
-    if (! event.modifiers.option)
-      this._draggedItem.time = this.snapToGrid (this._draggedItem.time);
+    // Snap to grid
+    if (! event.modifiers.option) {
+      this._draggedItem.time = this.snapToGrid(this._draggedItem.time);
+    }
 
-    // Now we determine the actual offset
-    let gridOffsetX = this._draggedItem.time - currentPosition.time;
-    let gridOffsetY = this._draggedItem.pitch - currentPosition.pitch;
+    // Now we determine the actual offset for all elements
+    const gridOffsetX = this._draggedItem.time - currentPosition.time;
+    const gridOffsetY = this._draggedItem.pitch - currentPosition.pitch;
 
     for (let s of this._selectedSet.getItems()) {
       // Ignore itemDragged which has already been moved
@@ -439,7 +464,7 @@ export class NoteGridComponent extends Component {
   }
 
   private dragStartPoints(event: ComponentMouseEvent): void {
-    if (this._draggedItem === null)
+    if (this._draggedItem == null)
       return;
 
     let currentStart = this._draggedItem.time;
@@ -561,7 +586,7 @@ export class NoteGridComponent extends Component {
         continue;
       }
 
-      g.strokeStyle = n.selected ? '#444' : '#666';
+      g.strokeStyle = n.selected ? '#46aaea' : '#666';
       g.lineWidth = n.selected ? 2 : 1;
       // TODO: hexa
       const colorCompound = Math.floor(99 - Math.min(99, n.velocity * (100 / 127))).toString().padStart(2, '0');
@@ -707,8 +732,9 @@ export class NoteGridComponent extends Component {
   private snapToGrid(time: number): number {
     let ratio = this.getLockRatio();
 
-    if (ratio > 0)
-      return ratio * (Math.floor (time / ratio));
+    if (ratio > 0) {
+      return ratio * Math.floor(time / ratio);
+    }
 
     return time * this.getSixteenthWidth();
   }

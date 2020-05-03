@@ -72,7 +72,7 @@ export class VerticalRuler extends Component {
     }
   }
 
-  protected doubleClicked(event: ComponentMouseEvent): void {
+  public doubleClicked(event: ComponentMouseEvent): void {
     this.model.verticalRange.min = MIN_PITCH;
     this.model.verticalRange.max = MAX_PITCH;
 

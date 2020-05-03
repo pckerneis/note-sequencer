@@ -51,13 +51,10 @@ export interface ComponentMouseEvent {
 }
 
 export abstract class Component {
-  public mousePointer: 'default' = 'default';
-
   private _children: Component[] = [];
   private _parent: Component = null;
   private _visible: boolean = true;
   private _needRepaint: boolean = true;
-  private _wasPressed: boolean = false;
   private _rootHolder: RootComponentHolder;
 
   protected constructor(private _bounds: ComponentBounds = new ComponentBounds()) {
@@ -162,20 +159,6 @@ export abstract class Component {
     return !(mousePosition.y < pos.y || mousePosition.y > pos.y + this._bounds.height);
   }
 
-  public handleMouseMove(e: ComponentMouseEvent): void {
-    for (let i = this._children.length; --i >= 0;) {
-      let c = this._children[i];
-
-      if (c.hitTest({x: e.x, y: e.y})) {
-        c.handleMouseMove(e);
-        return;
-      }
-    }
-
-    document.body.style.cursor = this.mousePointer;
-    this.mouseMoved(e);
-  }
-
   public findComponentAt(position: ComponentPosition): Component {
     for (let i = this._children.length; --i >= 0;) {
       let c = this._children[i];
@@ -186,62 +169,6 @@ export abstract class Component {
     }
 
     return this;
-  }
-
-  public handleMousePress(e: ComponentMouseEvent): void {
-    for (let i = this._children.length; --i >= 0;) {
-      let c = this._children[i];
-
-      if (c.hitTest(e)) {
-        c.handleMousePress(e);
-        return;
-      }
-    }
-
-    e.originatingComp = this;
-    this.mousePressed(e);
-    this._wasPressed = true;
-  }
-
-  public handleDoublePress(e: ComponentMouseEvent): void {
-    if (e.originatingComp != null)
-      e.originatingComp.doublePressed(e);
-  }
-
-  public handleClick(e: ComponentMouseEvent): void {
-    if (e.originatingComp != null)
-      e.originatingComp.clicked(e);
-  }
-
-  public handleMouseDrag(e: ComponentMouseEvent): void {
-    for (let i = this._children.length; --i >= 0;)
-      this._children[i].handleMouseDrag(e);
-
-    if (this._wasPressed)
-      this.mouseDragged(e);
-  }
-
-  public handleMouseRelease(e: ComponentMouseEvent): void {
-    for (let i = this._children.length; --i >= 0;)
-      this._children[i].handleMouseRelease(e);
-
-    if (this._wasPressed)
-      this.mouseReleased(e);
-
-    this._wasPressed = false;
-  }
-
-  public handleDoubleClick(e: ComponentMouseEvent): void {
-    for (let i = this._children.length; --i >= 0;) {
-      let c = this._children[i];
-
-      if (c.hitTest(e)) {
-        c.handleDoubleClick(e);
-        return;
-      }
-    }
-
-    this.doubleClicked(e);
   }
 
   public repaint(isOriginalRepaintTarget: boolean = true): void {
@@ -284,25 +211,25 @@ export abstract class Component {
   }
 
   // These functions should be overridden by sub comps
-  protected mouseMoved(event: ComponentMouseEvent): void {
+  public mouseMoved(event: ComponentMouseEvent): void {
   }
 
-  protected mousePressed(event: ComponentMouseEvent): void {
+  public mousePressed(event: ComponentMouseEvent): void {
   }
 
-  protected mouseReleased(event: ComponentMouseEvent): void {
+  public mouseReleased(event: ComponentMouseEvent): void {
   }
 
-  protected mouseDragged(event: ComponentMouseEvent): void {
+  public mouseDragged(event: ComponentMouseEvent): void {
   }
 
-  protected clicked(event: ComponentMouseEvent): void {
+  public clicked(event: ComponentMouseEvent): void {
   }
 
-  protected doublePressed(event: ComponentMouseEvent): void {
+  public doublePressed(event: ComponentMouseEvent): void {
   }
 
-  protected doubleClicked(event: ComponentMouseEvent): void {
+  public doubleClicked(event: ComponentMouseEvent): void {
   }
 
   protected abstract resized(): void;
@@ -362,7 +289,7 @@ export class RootComponentHolder {
       mouseDownTime = performance.now();
       wasDragged = false;
 
-      component.handleMousePress({
+      component.mousePressed({
         positionAtMouseDown: mouseDownPos,
         x: mouseDownPos.x,
         y: mouseDownPos.y,
@@ -380,7 +307,7 @@ export class RootComponentHolder {
       if (consecutivePressCount == 2
           && squaredDistance(lastClickPos.x, lastClickPos.y, mouseDownPos.x, mouseDownPos.y)
               < CLICK_MAX_DISTANCE * CLICK_MAX_DISTANCE) {
-        component.handleDoublePress({
+        component.doublePressed({
           positionAtMouseDown: mouseDownPos,
           x: mouseDownPos.x,
           y: mouseDownPos.y,
@@ -393,7 +320,7 @@ export class RootComponentHolder {
       }
     }));
 
-    this.canvas.addEventListener('mouseup', (event: MouseEvent) => {
+    document.addEventListener('mouseup', (event: MouseEvent) => {
       mouseUpPos = mousePositionRelativeToCanvas(event);
       mouseUpTime = performance.now();
 
@@ -403,7 +330,7 @@ export class RootComponentHolder {
       }
 
       if (pressedComponent != null) {
-        pressedComponent.handleMouseRelease({
+        pressedComponent.mouseReleased({
           positionAtMouseDown: mouseDownPos,
           x: mouseUpPos.x,
           y: mouseUpPos.y,
@@ -416,7 +343,7 @@ export class RootComponentHolder {
           && ! wasDragged) {
           lastClickPos = mouseUpPos;
 
-          pressedComponent.handleClick({
+          pressedComponent.clicked({
             positionAtMouseDown: mouseDownPos,
             x: mouseUpPos.x,
             y: mouseUpPos.y,
@@ -434,7 +361,7 @@ export class RootComponentHolder {
           if (consecutiveClickCount == 2
             && squaredDistance(lastClickPos.x, lastClickPos.y, mouseDownPos.x, mouseDownPos.y)
                 < CLICK_MAX_DISTANCE * CLICK_MAX_DISTANCE) {
-            pressedComponent.handleDoubleClick({
+            pressedComponent.doubleClicked({
               positionAtMouseDown: mouseDownPos,
               x: mouseUpPos.x,
               y: mouseUpPos.y,
@@ -455,6 +382,8 @@ export class RootComponentHolder {
     });
 
     document.addEventListener('mousemove', (event: MouseEvent) => {
+      document.body.style.cursor = 'default';
+
       const {x, y} = mousePositionRelativeToCanvas(event);
 
       if (mouseDownPos != null) {
@@ -463,7 +392,7 @@ export class RootComponentHolder {
       }
 
       hit(event, (component) => {
-        component.handleMouseMove({
+        component.mouseMoved({
           positionAtMouseDown: mouseDownPos,
           x, y,
           originatingComp: component,
@@ -473,7 +402,7 @@ export class RootComponentHolder {
       });
 
       if (event.buttons > 0 && pressedComponent != null) {
-        pressedComponent.handleMouseDrag({
+        pressedComponent.mouseDragged({
           positionAtMouseDown: mouseDownPos,
           x, y,
           originatingComp: pressedComponent,
