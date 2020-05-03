@@ -350,11 +350,9 @@ export class NoteGridComponent extends Component {
       this.dragStartPoints(event);
     }
 
-    // TODO
-    /*
-    if (this._dragMode == "V_RIGHT")
+    if (this._dragMode == "V_RIGHT") {
       this.dragVelocity(event);
-     */
+    }
 
     this.removeOverlaps (false);
   }
@@ -472,16 +470,18 @@ export class NoteGridComponent extends Component {
 
   private dragVelocity(event: ComponentMouseEvent): void {
     // Can only apply to itemDragged
-    if (this._draggedItem == null)
+    if (this._draggedItem == null) {
       return;
+    }
 
-    if (this._initialVelocity == undefined)
+    if (this._initialVelocity == null) {
       this._initialVelocity = this._draggedItem.velocity;
+    }
 
     let dragOffset = event.y - event.positionAtMouseDown.y;
 
     this._draggedItem.velocity = this._initialVelocity - dragOffset;
-    this._draggedItem.velocity = Math.max (1, Math.min (128, this._draggedItem.velocity));
+    this._draggedItem.velocity = Math.max (0, Math.min (this._draggedItem.velocity, 127));
 
     this._currentVelocity = this._draggedItem.velocity;
   }
@@ -547,8 +547,10 @@ export class NoteGridComponent extends Component {
       g.strokeStyle = n.selected ? '#444' : '#666';
       g.lineWidth = n.selected ? 2 : 1;
       // TODO: hexa
-      const colorCompound = (Math.min(99, n.velocity * (100 / 127))).toString().padEnd(2);
+      const colorCompound = Math.floor(99 - Math.min(99, n.velocity * (100 / 127))).toString().padStart(2, '0');
       g.fillStyle = `#${colorCompound}${colorCompound}${colorCompound}`;
+
+      console.log(`#${colorCompound}${colorCompound}${colorCompound}`)
 
       let x = this.getPositionForTime(n.time);
       let y = this.getPositionForPitch(n.pitch);

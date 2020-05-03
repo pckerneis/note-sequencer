@@ -124,8 +124,9 @@ export abstract class Component {
   }
 
   public toFront(): void {
-    if (this._parent == undefined)
+    if (this._parent == null) {
       return;
+    }
 
     let idx = this._parent._children.indexOf(this);
 

@@ -56,8 +56,9 @@ export class SelectedItemSet<T extends SelectableItem> {
   }
 
   public addToSelectionMouseUp(wasMouseDragged: boolean, isShiftKeyDown: boolean, actionConsumedOnMouseDown: boolean): void {
-    if (this._itemAboutToBeSelected == undefined)
+    if (this._itemAboutToBeSelected == null) {
       return;
+    }
 
     let itemIsSelected = false;
 
