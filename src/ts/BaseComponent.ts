@@ -3,7 +3,14 @@ export interface ComponentPosition {
   y: number,
 }
 
-export class ComponentBounds {
+export interface IBounds {
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+}
+
+export class ComponentBounds implements IBounds {
   constructor(
     public x: number = 0,
     public y: number = 0,
@@ -54,6 +61,11 @@ export abstract class Component {
   private _rootHolder: RootComponentHolder;
 
   protected constructor(private _bounds: ComponentBounds = new ComponentBounds()) {
+  }
+
+  public static boundsIntersect(box1: IBounds, box2: IBounds): boolean {
+    return ! ((box2.x >= box1.x + box1.width) || (box2.x + box2.width <= box1.x)
+      || (box2.y >= box1.y + box1.height) || (box2.y + box2.height <= box1.y));
   }
 
   private static createOffscreenCanvas(width: number, height: number): HTMLCanvasElement {

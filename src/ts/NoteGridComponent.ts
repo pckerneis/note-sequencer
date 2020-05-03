@@ -1,4 +1,5 @@
-import {Component, ComponentMouseEvent, ComponentPosition} from './BaseComponent';
+import {Component, ComponentBounds, ComponentMouseEvent, ComponentPosition} from './BaseComponent';
+import {LassoSelector} from './LassoSelector';
 import {MIN_SEMI_H, PITCH_PATTERN, SequencerDisplayModel} from './note-sequencer'
 import {SelectedItemSet} from './SelectedItemSet';
 
@@ -31,11 +32,14 @@ export class NoteGridComponent extends Component {
   public fixedIndex: number = 5;
 
   private _notes: Note[] = [];
-  private _currentVelocity: number = 127;
-  private _selectedSet: SelectedItemSet<Note>;
-  private _dragMode: DragAction;
-  private _draggedItem: Note;
+  private readonly _selectedSet: SelectedItemSet<Note>;
+  private readonly _lasso: LassoSelector<Note>;
+
   private _mouseDownResult: boolean = false;
+
+  private _currentVelocity: number = 127;
+  private _dragAction: DragAction;
+  private _draggedItem: Note;
 
   // These are used in drag methods and reset in mouseReleased
   private _initialPosition: NotePosition = null;
@@ -47,6 +51,21 @@ export class NoteGridComponent extends Component {
     super();
 
     this._selectedSet = new SelectedItemSet<Note>();
+
+    this._lasso = new LassoSelector<Note>(this, this._selectedSet);
+
+    this._lasso.findAllElementsInLasso = (lassoBounds: ComponentBounds) => {
+      return this._notes.filter((note) => {
+        const noteBounds = {
+          x: this.getPositionForTime (note.time),
+          y: this.getPositionForPitch (note.pitch),
+          width: Math.max (2, note.duration * this.getSixteenthWidth()),
+          height: this.getSemitoneHeight(),
+        };
+
+        return Component.boundsIntersect(noteBounds, lassoBounds);
+      });
+    }
   }
 
   public render(g: CanvasRenderingContext2D): void {
@@ -73,13 +92,9 @@ export class NoteGridComponent extends Component {
       this.drawOctaveLines(g, vMin, vMax, semiHeight);
     }
 
-    this.drawNotes(g, semiHeight, sixteenth);
+    this._lasso.drawLasso(g);
 
-    // TODO
-    /*
-    lasso.drawLasso(g);
     this.drawNotes(g, semiHeight, sixteenth);
-    */
   }
 
   public resized(): void {
@@ -206,7 +221,7 @@ export class NoteGridComponent extends Component {
     this.removeOverlaps(true);
 
     // We start dragging the end point of this note and its velocity
-    this._dragMode = 'V_RIGHT';
+    this._dragAction = 'V_RIGHT';
     this._draggedItem = newNote;
 
     // Trigger callback method
@@ -251,11 +266,11 @@ export class NoteGridComponent extends Component {
     let existingNote = this.findNoteAt(local);
 
     if (existingNote == null) {
-      if (! event.modifiers.shift)
+      if (! event.modifiers.shift) {
         this._selectedSet.deselectAll();
+      }
 
-      // TODO
-      // lasso.beginLasso();
+      this._lasso.beginLasso(event);
 
       this._mouseDownResult = true;
 
@@ -263,21 +278,20 @@ export class NoteGridComponent extends Component {
     }
 
     this._mouseDownResult = this._selectedSet.addToSelectionMouseDown(existingNote, event.modifiers.shift);
-    this._dragMode = this.getDragActionForNoteAt (local, existingNote);
+    this._dragAction = this.getDragActionForNoteAt (local, existingNote);
 
     this._draggedItem = existingNote;
     this.moveNoteToFront (existingNote);
   }
 
   public mouseReleased(event: ComponentMouseEvent): void {
-    this._dragMode = 'NONE';
+    this._dragAction = 'NONE';
     this._initialPosition = null;
     this._initialDuration = null;
     this._initialStart = null;
     this._initialVelocity = null;
 
-    // TODO
-    // lasso.endLasso();
+    this._lasso.endLasso();
 
     // in case a drag would have caused negative durations
     for (let s of this._selectedSet.getItems()) {
@@ -334,27 +348,30 @@ export class NoteGridComponent extends Component {
   }
 
   public mouseDragged(event: ComponentMouseEvent): void {
-    // TODO
-    if (this._dragMode == "NONE") {
-      // lasso.dragLasso();
+    if (this._dragAction == "NONE") {
+      this._lasso.dragLasso(event);
     }
 
-    if (! event.wasDragged || this._dragMode == "NONE")
+    if (! event.wasDragged || this._dragAction == "NONE") {
+      this.repaint();
       return;
+    }
 
-    if (this._dragMode == "MOVE_NOTE") {
+    if (this._dragAction == "MOVE_NOTE") {
       this.moveSelection(event);
-    } else if (this._dragMode == "RIGHT" || this._dragMode == "V_RIGHT") {
+    } else if (this._dragAction == "RIGHT" || this._dragAction == "V_RIGHT") {
       this.dragEndPoints(event);
-    } else if (this._dragMode == "LEFT") {
+    } else if (this._dragAction == "LEFT") {
       this.dragStartPoints(event);
     }
 
-    if (this._dragMode == "V_RIGHT") {
+    if (this._dragAction == "V_RIGHT") {
       this.dragVelocity(event);
     }
 
     this.removeOverlaps (false);
+
+    this.repaint();
   }
 
   public getTimeAsMBS(t: number): number[] {
@@ -549,8 +566,6 @@ export class NoteGridComponent extends Component {
       // TODO: hexa
       const colorCompound = Math.floor(99 - Math.min(99, n.velocity * (100 / 127))).toString().padStart(2, '0');
       g.fillStyle = `#${colorCompound}${colorCompound}${colorCompound}`;
-
-      console.log(`#${colorCompound}${colorCompound}${colorCompound}`)
 
       let x = this.getPositionForTime(n.time);
       let y = this.getPositionForPitch(n.pitch);
