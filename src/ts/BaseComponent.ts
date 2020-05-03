@@ -35,6 +35,7 @@ export class ComponentBounds {
 }
 
 export interface ComponentMouseEvent {
+  positionAtMouseDown: {x: number, y: number},
   x: number,
   y: number,
   originatingComp: Component,
@@ -189,12 +190,12 @@ export abstract class Component {
   }
 
   public handleDoublePress(e: ComponentMouseEvent): void {
-    if (!e.wasDragged && e.originatingComp != undefined)
+    if (e.originatingComp != null)
       e.originatingComp.doublePressed(e);
   }
 
   public handleClick(e: ComponentMouseEvent): void {
-    if (!e.wasDragged && e.originatingComp != undefined)
+    if (e.originatingComp != null)
       e.originatingComp.clicked(e);
   }
 
@@ -216,11 +217,7 @@ export abstract class Component {
     this._wasPressed = false;
   }
 
-  // Should be triggered on 2nd mouse press instead of release...
   public handleDoubleClick(e: ComponentMouseEvent): void {
-    if (e.wasDragged)
-      return;
-
     for (let i = this._children.length; --i >= 0;) {
       let c = this._children[i];
 
@@ -302,6 +299,7 @@ export abstract class Component {
 const CLICK_MAX_DISTANCE = 5;
 const CLICK_INTERVAL = 200;
 const DOUBLE_CLICK_INTERVAL = 500;
+const DOUBLE_PRESS_INTERVAL = 400;
 
 function squaredDistance(x1: number, y1: number, x2: number, y2: number): number {
   return (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
@@ -322,9 +320,11 @@ export class RootComponentHolder {
     let mouseUpPos: ComponentPosition;
     let mouseDownTime: number;
     let mouseUpTime: number;
-    let mouseWasDragged: boolean = false;
     let consecutiveClickCount: number = 0;
+    let consecutivePressCount: number = 0;
     let lastClickTime: number;
+    let lastClickPos: ComponentPosition;
+    let wasDragged: boolean = false;
 
     const mousePositionRelativeToCanvas = (event: MouseEvent) => {
       const canvasBounds = this.canvas.getBoundingClientRect();
@@ -346,13 +346,35 @@ export class RootComponentHolder {
       pressedComponent = component;
       mouseDownPos = mousePositionRelativeToCanvas(event);
       mouseDownTime = performance.now();
+      wasDragged = false;
 
       component.handleMousePress({
+        positionAtMouseDown: mouseDownPos,
         x: mouseDownPos.x,
         y: mouseDownPos.y,
-        wasDragged: false,
         originatingComp: component,
+        wasDragged,
       });
+
+      if (lastClickTime == null || mouseDownTime > lastClickTime + DOUBLE_PRESS_INTERVAL) {
+        consecutivePressCount = 1;
+      } else {
+        consecutivePressCount++;
+      }
+
+      if (consecutivePressCount == 2
+          && squaredDistance(lastClickPos.x, lastClickPos.y, mouseDownPos.x, mouseDownPos.y)
+              < CLICK_MAX_DISTANCE * CLICK_MAX_DISTANCE) {
+        component.handleDoublePress({
+          positionAtMouseDown: mouseDownPos,
+          x: mouseDownPos.x,
+          y: mouseDownPos.y,
+          originatingComp: component,
+          wasDragged,
+        });
+
+        consecutivePressCount = 0;
+      }
     }));
 
     this.canvas.addEventListener('mouseup', (event: MouseEvent) => {
@@ -360,25 +382,29 @@ export class RootComponentHolder {
       mouseUpTime = performance.now();
 
       if (mouseDownPos != null) {
-        mouseWasDragged = squaredDistance(mouseDownPos.x, mouseDownPos.y, mouseUpPos.x, mouseUpPos.y)
+        wasDragged = squaredDistance(mouseDownPos.x, mouseDownPos.y, mouseUpPos.x, mouseUpPos.y)
           > CLICK_MAX_DISTANCE * CLICK_MAX_DISTANCE;
       }
 
       if (pressedComponent != null) {
         pressedComponent.handleMouseRelease({
+          positionAtMouseDown: mouseDownPos,
           x: mouseUpPos.x,
           y: mouseUpPos.y,
-          wasDragged: mouseWasDragged,
           originatingComp: pressedComponent,
+          wasDragged,
         });
 
         if (mouseUpTime < mouseDownTime + CLICK_INTERVAL
-          && ! mouseWasDragged) {
+          && ! wasDragged) {
+          lastClickPos = mouseUpPos;
+
           pressedComponent.handleClick({
+            positionAtMouseDown: mouseDownPos,
             x: mouseUpPos.x,
             y: mouseUpPos.y,
-            wasDragged: mouseWasDragged,
             originatingComp: pressedComponent,
+            wasDragged,
           });
 
           if (lastClickTime == null || mouseUpTime > lastClickTime + DOUBLE_CLICK_INTERVAL) {
@@ -387,12 +413,15 @@ export class RootComponentHolder {
             consecutiveClickCount++;
           }
 
-          if (consecutiveClickCount == 2) {
+          if (consecutiveClickCount == 2
+            && squaredDistance(lastClickPos.x, lastClickPos.y, mouseDownPos.x, mouseDownPos.y)
+                < CLICK_MAX_DISTANCE * CLICK_MAX_DISTANCE) {
             pressedComponent.handleDoubleClick({
+              positionAtMouseDown: mouseDownPos,
               x: mouseUpPos.x,
               y: mouseUpPos.y,
-              wasDragged: mouseWasDragged,
               originatingComp: pressedComponent,
+              wasDragged,
             });
 
             consecutiveClickCount = 0;
@@ -403,30 +432,32 @@ export class RootComponentHolder {
         lastClickTime = performance.now();
       }
 
-      mouseWasDragged = false;
+      wasDragged = false;
     });
 
     document.addEventListener('mousemove', (event: MouseEvent) => {
       const {x, y} = mousePositionRelativeToCanvas(event);
 
       if (mouseDownPos != null) {
-        mouseWasDragged = squaredDistance(mouseDownPos.x, mouseDownPos.y, x, y)
+        wasDragged = squaredDistance(mouseDownPos.x, mouseDownPos.y, x, y)
           > CLICK_MAX_DISTANCE * CLICK_MAX_DISTANCE;
       }
 
       hit(event, (component) => {
         component.handleMouseMove({
+          positionAtMouseDown: mouseDownPos,
           x, y,
-          wasDragged: mouseWasDragged,
           originatingComp: component,
+          wasDragged,
         });
       });
 
       if (event.buttons > 0 && pressedComponent != null) {
         pressedComponent.handleMouseDrag({
+          positionAtMouseDown: mouseDownPos,
           x, y,
-          wasDragged: mouseWasDragged,
           originatingComp: pressedComponent,
+          wasDragged,
         });
       }
 

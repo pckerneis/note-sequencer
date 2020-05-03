@@ -29,6 +29,7 @@ export interface SequencerDisplayModel {
   visibleTimeRange: Range,
   maxTimeRange: Range,
   signature: TimeSignature,
+  adaptiveMode: boolean,
 }
 
 /**
@@ -51,6 +52,7 @@ export class NoteSequencer extends HTMLElement {
       maxTimeRange: {min: 0, max: 32},
       signature: {upper: 4, lower: 4},
       zoomSensitivity: 30,
+      adaptiveMode: true,
     };
 
     this._shadowRoot = this.attachShadow({mode: 'closed'});
