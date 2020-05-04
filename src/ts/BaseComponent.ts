@@ -39,6 +39,16 @@ export class ComponentBounds implements IBounds {
 
     return removed;
   }
+
+  public removeFromBottom(amount: number): ComponentBounds {
+    amount = Math.max(0, Math.min(amount, this.height));
+
+    const removed = new ComponentBounds(this.x, this.height - amount, this.width, amount);
+
+    this.height -= amount;
+
+    return removed;
+  }
 }
 
 export interface ComponentMouseEvent {

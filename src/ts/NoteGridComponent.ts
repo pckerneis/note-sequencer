@@ -1,6 +1,7 @@
 import {Component, ComponentBounds, ComponentMouseEvent, ComponentPosition} from './BaseComponent';
 import {LassoSelector} from './LassoSelector';
 import {MAX_PITCH, MIN_SEMI_H, PITCH_PATTERN, SequencerDisplayModel} from './note-sequencer'
+import {getBackgroundAlternateWidth} from './RenderHelpers';
 import {SelectedItemSet} from './SelectedItemSet';
 
 interface Note {
@@ -75,6 +76,10 @@ export class NoteGridComponent extends Component {
     }
   }
 
+  public get notes(): Note[] {
+    return this._notes;
+  }
+
   public render(g: CanvasRenderingContext2D): void {
     // Background
     g.fillStyle = '#ddd';
@@ -110,13 +115,16 @@ export class NoteGridComponent extends Component {
 
   //===============================================================================
   // Note management
-  public removeNote(note: Note): void {
+  public removeNote(note: Note, repaint: boolean = true): void {
     let idx = this._notes.indexOf(note);
 
     if (idx >= 0) {
       this._selectedSet.removeFromSelection(note);
       this._notes.splice(idx, 1);
-      this.repaint();
+
+      if (repaint) {
+        this.getParentComponent().repaint();
+      }
     }
   }
 
@@ -126,7 +134,7 @@ export class NoteGridComponent extends Component {
     if (idx >= 0) {
       this._notes.splice(idx, 1);
       this._notes.push(note);
-      this.repaint();
+      this.getParentComponent().repaint();
     }
   }
 
@@ -134,9 +142,9 @@ export class NoteGridComponent extends Component {
     let selected = this._selectedSet.getItems();
 
     for (let i = selected.length; --i >= 0;)
-      this.removeNote(selected[i]);
+      this.removeNote(selected[i], false);
 
-    this.repaint();
+    this.getParentComponent().repaint();
   }
 
   //===============================================================================
@@ -403,7 +411,7 @@ export class NoteGridComponent extends Component {
     }
 
     if (! event.wasDragged || this._dragAction == "NONE") {
-      this.repaint();
+      this.getParentComponent().repaint();
       return;
     }
 
@@ -421,7 +429,7 @@ export class NoteGridComponent extends Component {
 
     this.removeOverlaps (false);
 
-    this.repaint();
+    this.getParentComponent().repaint();
   }
 
   public getTimeAsMBS(t: number): number[] {
@@ -451,6 +459,31 @@ export class NoteGridComponent extends Component {
     let useBeats = useSixteenth || b != 1;
 
     return m + (useBeats ? '.' + b : '') + (useSixteenth ? '.' + Math.floor(s) : '');
+  }
+
+  public getLockRatio(): number {
+    let sixteenth = this.getSixteenthWidth();
+    let ratio: number;
+
+    if (this.model.adaptiveMode) {
+      let desiredSpacing = this.adaptiveValues[this.adaptiveIndex] * this.height;
+
+      ratio = (16 * this.model.signature.upper) / this.model.signature.lower;
+
+      if (ratio * sixteenth > desiredSpacing) {
+        ratio /= this.model.signature.upper;
+
+        while (sixteenth * ratio > desiredSpacing)
+          ratio /= 2;
+      } else {
+        while (sixteenth * ratio * 2 < desiredSpacing)
+          ratio *= 2;
+      }
+    } else {
+      ratio = this.fixedRatios[this.fixedIndex];
+    }
+
+    return ratio;
   }
   
   private dragEndPoints(event: ComponentMouseEvent): void {
@@ -582,24 +615,7 @@ export class NoteGridComponent extends Component {
     if (incr <= 0)
       return;
 
-    let minAlternate = 100;
-    let maxAlternate = 200;
-
-    // Measure alternate
-    let alternate = (16 * this.model.signature.upper) / this.model.signature.lower;
-
-    // If a measure is too big, try alternating with each beat
-    if (alternate * sixteenth > maxAlternate) {
-      alternate /= this.model.signature.upper;
-
-      // If it's still to big, subdivide beat
-      while (alternate * sixteenth > maxAlternate)
-        alternate /= 2;
-    } else {
-      // If it's too small, multiply measure by 2
-      while (alternate * sixteenth < minAlternate)
-        alternate *= 2;
-    }
+    const alternate = getBackgroundAlternateWidth(sixteenth, this.model.signature);
 
     for (let i = 0; i < Math.ceil(vMax); i += incr) {
       let x = (i - vMin) * sixteenth;
@@ -717,7 +733,7 @@ export class NoteGridComponent extends Component {
       }
     }
 
-    this.repaint();
+    this.getParentComponent().repaint();
   }
 
   private getDragActionForNoteAt(pos: ComponentPosition, n: Note): DragAction {
@@ -748,31 +764,6 @@ export class NoteGridComponent extends Component {
     }
 
     return null;
-  }
-
-  private getLockRatio(): number {
-    let sixteenth = this.getSixteenthWidth();
-    let ratio: number;
-
-    if (this.model.adaptiveMode) {
-      let desiredSpacing = this.adaptiveValues[this.adaptiveIndex] * this.height;
-
-      ratio = (16 * this.model.signature.upper) / this.model.signature.lower;
-
-      if (ratio * sixteenth > desiredSpacing) {
-        ratio /= this.model.signature.upper;
-
-        while (sixteenth * ratio > desiredSpacing)
-          ratio /= 2;
-      } else {
-        while (sixteenth * ratio * 2 < desiredSpacing)
-          ratio *= 2;
-      }
-    } else {
-      ratio = this.fixedRatios[this.fixedIndex];
-    }
-
-    return ratio;
   }
 
   private snapToGrid(time: number): number {

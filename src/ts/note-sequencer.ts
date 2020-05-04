@@ -18,7 +18,7 @@ interface Range {
   max: number,
 }
 
-interface TimeSignature {
+export interface TimeSignature {
   upper: number,
   lower: number,
 }
