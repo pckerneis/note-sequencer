@@ -1,5 +1,9 @@
 import {TimeSignature} from './note-sequencer';
 
+export function squaredDistance(x1: number, y1: number, x2: number, y2: number): number {
+  return (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+}
+
 export function getBackgroundAlternateWidth(sixteenth: number, signature: TimeSignature): number {
   const minAlternate = 100;
   const maxAlternate = 200;

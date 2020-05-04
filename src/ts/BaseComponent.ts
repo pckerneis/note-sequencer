@@ -1,3 +1,5 @@
+import {squaredDistance} from './RenderHelpers';
+
 export interface ComponentPosition {
   x: number,
   y: number,
@@ -251,10 +253,6 @@ const CLICK_MAX_DISTANCE = 5;
 const CLICK_INTERVAL = 200;
 const DOUBLE_CLICK_INTERVAL = 500;
 const DOUBLE_PRESS_INTERVAL = 400;
-
-function squaredDistance(x1: number, y1: number, x2: number, y2: number): number {
-  return (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
-}
 
 export class RootComponentHolder {
   public readonly canvas: HTMLCanvasElement;

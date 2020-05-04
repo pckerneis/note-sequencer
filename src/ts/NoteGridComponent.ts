@@ -4,7 +4,7 @@ import {MAX_PITCH, MIN_SEMI_H, PITCH_PATTERN, SequencerDisplayModel} from './not
 import {getBackgroundAlternateWidth} from './RenderHelpers';
 import {SelectedItemSet} from './SelectedItemSet';
 
-interface Note {
+export interface Note {
   initialStart: number;
   time: number,
   pitch: number,
@@ -78,6 +78,10 @@ export class NoteGridComponent extends Component {
 
   public get notes(): Note[] {
     return this._notes;
+  }
+
+  public get selectedSet(): SelectedItemSet<Note> {
+    return this._selectedSet;
   }
 
   public render(g: CanvasRenderingContext2D): void {
