@@ -54,7 +54,7 @@ export class HorizontalRuler extends Component {
   protected render(g: CanvasRenderingContext2D): void {
     const bounds = this.getLocalBounds();
 
-    g.fillStyle = '#eee';
+    g.fillStyle = this.model.colors.background;
     g.fillRect(0, 0, this.width, this.height);
 
     let vMin = this.model.visibleTimeRange.min;
@@ -88,21 +88,20 @@ export class HorizontalRuler extends Component {
 
       let gradH = i % (incr * 4) == 0 ? 0.4 : 0.12;
 
-      g.fillStyle = '#00000030';
+      g.fillStyle = this.model.colors.strokeLight;
       g.fillRect(x, bounds.height * (1 - gradH), 1, bounds.height * gradH);
 
       if (i % ratio == 0) {
         g.rect(x + 1, bounds.height * (1 - gradH), 1, 1);
 
-        g.fillStyle = '#000';
-
+        g.fillStyle = this.model.colors.text;
         const text = this.grid.getStringForTime(i, true);
         g.fillText(text, x + 4, bounds.height - 5, minLabelSpacing);
       }
     }
 
     // Bottom corner
-    g.fillStyle = '#00000030';
+    g.fillStyle = this.model.colors.strokeLight;
     g.fillRect(0, bounds.height - 1, bounds.width, 1);
   }
 

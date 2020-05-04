@@ -1,7 +1,7 @@
 import {Component, ComponentBounds, ComponentMouseEvent, ComponentPosition} from './BaseComponent';
 import {LassoSelector} from './LassoSelector';
 import {MAX_PITCH, MIN_SEMI_H, PITCH_PATTERN, SequencerDisplayModel} from './note-sequencer'
-import {getBackgroundAlternateWidth} from './RenderHelpers';
+import {drawNote, drawTimeBackground} from './RenderHelpers';
 import {SelectedItemSet} from './SelectedItemSet';
 
 export interface Note {
@@ -62,7 +62,7 @@ export class NoteGridComponent extends Component {
 
     this._selectedSet = new SelectedItemSet<Note>();
 
-    this._lasso = new LassoSelector<Note>(this, this._selectedSet);
+    this._lasso = new LassoSelector<Note>(this, this._selectedSet, this.model.colors);
 
     this._lasso.findAllElementsInLasso = (lassoBounds: ComponentBounds) => {
       return this._notes.filter((note) => {
@@ -88,7 +88,7 @@ export class NoteGridComponent extends Component {
 
   public render(g: CanvasRenderingContext2D): void {
     // Background
-    g.fillStyle = '#ddd';
+    g.fillStyle = this.model.colors.background;
     g.fillRect(0, 0, this.width, this.height);
 
     // Horizontal
@@ -622,31 +622,7 @@ export class NoteGridComponent extends Component {
     if (incr <= 0)
       return;
 
-    const alternate = getBackgroundAlternateWidth(sixteenth, this.model.signature);
-
-    for (let i = 0; i < Math.ceil(vMax); i += incr) {
-      let x = (i - vMin) * sixteenth;
-
-      // Alternate background
-      if (i % (alternate * 2) == 0) {
-        g.fillStyle = '#ccc';
-        g.fillRect(x, 0, alternate * sixteenth, this.height);
-      }
-
-      if (x < 0)
-        continue;
-
-      // Larger lines for measures
-      if (i % ((16 * this.model.signature.upper) / this.model.signature.lower) == 0) {
-        g.fillStyle = '#999';
-        g.fillRect(x, 0, 1, this.height);
-      }
-      // Regular lines
-      else if (Math.round(i % incr) == 0) {
-        g.fillStyle = '#00000040';
-        g.fillRect(x, 0, 1, this.height);
-      }
-    }
+    drawTimeBackground(g, this.height, sixteenth, incr, vMin, vMax, this.model.signature, this.model.colors);
   }
 
   private drawNotes(g: CanvasRenderingContext2D, semiHeight: number, sixteenth: number): void {
@@ -655,24 +631,17 @@ export class NoteGridComponent extends Component {
         continue;
       }
 
-      g.strokeStyle = n.selected ? '#46aaea' : '#666';
-      g.lineWidth = n.selected ? 2 : 1;
-      // TODO: hexa
-      const colorCompound = Math.floor(99 - Math.min(99, n.velocity * (100 / 127))).toString().padStart(2, '0');
-      g.fillStyle = `#${colorCompound}${colorCompound}${colorCompound}`;
-
       let x = this.getPositionForTime(n.time);
       let y = this.getPositionForPitch(n.pitch);
       let d = n.tempDuration != null ? n.tempDuration : n.duration;
       let w = Math.max(2, d * sixteenth);
-      let h = semiHeight;
-      g.fillRect(x, y, w, h);
-      g.strokeRect(x, y, w, h);
+
+      drawNote(g, x, y, w, semiHeight, n.velocity, n.selected, this.model.colors);
     }
   }
 
   private drawOctaveLines(g: CanvasRenderingContext2D, vMin: number, vMax: number, semiHeight: number): void {
-    g.fillStyle = '#888';
+    g.fillStyle = this.model.colors.strokeDark;
 
     for (let i = 0; i < 128; i += 12) {
       if (i >= vMin && i <= vMax) {
@@ -688,14 +657,18 @@ export class NoteGridComponent extends Component {
     for (let i = Math.floor(vMin); i < Math.ceil(vMax); ++i) {
       let y = this.height - (i - Math.floor(vMin)) * semiHeight;
       let pitchClass = i % 12;
-      let isBlack = PITCH_PATTERN[pitchClass];
 
       const viewportY = yOffset + y - semiHeight;
 
-      g.fillStyle = isBlack ? '#00000030' : '#00000000';
-      g.fillRect(0, viewportY, this.width, semiHeight);
+      // Black key
+      g.fillStyle = this.model.colors.backgroundBlackKey;
 
-      g.fillStyle = '#00000020';
+      if (PITCH_PATTERN[pitchClass]) {
+        g.fillRect(0, viewportY, this.width, semiHeight);
+      }
+
+      // Line separation
+      g.fillStyle = this.model.colors.strokeLight;
       g.fillRect(0, viewportY, this.width, 1);
     }
   }

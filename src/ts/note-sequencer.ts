@@ -30,7 +30,50 @@ export interface SequencerDisplayModel {
   maxTimeRange: Range,
   signature: TimeSignature,
   adaptiveMode: boolean,
+  colors: Colors,
 }
+
+export interface Colors {
+  background: string,
+  backgroundAlternate: string,
+  backgroundBlackKey: string,
+  strokeLight: string,
+  strokeDark: string,
+  text: string,
+  velocityHandle: string,
+  velocityHandleSelected: string,
+  whiteKey: string,
+  blackKey: string,
+  noteHigh: string,
+  noteLowBlend: string,
+  noteOutline: string,
+  noteOutlineSelected: string,
+  draggableBorder: string,
+  draggableBorderHover: string,
+  lassoBackground: string,
+  lassoOutline: string,
+}
+
+const defaultColors: Colors = {
+  background: '#eeeeee',
+  backgroundAlternate: '#00000010',
+  backgroundBlackKey: '#00000025',
+  strokeLight: '#00000020',
+  strokeDark: '#00000050',
+  text: '#000000',
+  velocityHandle: '#ff9200',
+  velocityHandleSelected: '#00a8ff',
+  whiteKey: '#ffffff',
+  blackKey: '#5e5e5e',
+  noteHigh: '#ff3a36',
+  noteLowBlend: '#959eb7',
+  noteOutline: '#606060',
+  noteOutlineSelected: '#00a8ff',
+  draggableBorder: '#8f8f8f',
+  draggableBorderHover: '#676767',
+  lassoBackground: '#00a8ff20',
+  lassoOutline: '#00a8ff80',
+};
 
 /**
  * A canvas-based note sequencer.
@@ -53,6 +96,7 @@ export class NoteSequencer extends HTMLElement {
       signature: {upper: 4, lower: 4},
       zoomSensitivity: 30,
       adaptiveMode: true,
+      colors: defaultColors,
     };
 
     this._shadowRoot = this.attachShadow({mode: 'closed'});

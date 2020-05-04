@@ -1,4 +1,5 @@
 import {Component, ComponentMouseEvent, IBounds} from './BaseComponent';
+import {Colors} from './note-sequencer';
 import {SelectableItem, SelectedItemSet} from './SelectedItemSet';
 
 interface Lasso<T extends SelectableItem> {
@@ -16,7 +17,8 @@ export class LassoSelector<T extends SelectableItem> {
 
   private lasso: Lasso<T>;
 
-  constructor(public readonly ownerComp: Component, public readonly selectedItemSet: SelectedItemSet<T>) {
+  constructor(public readonly ownerComp: Component, public readonly selectedItemSet: SelectedItemSet<T>,
+              public readonly colors: Colors) {
   }
 
   public beginLasso(event: ComponentMouseEvent): void {
@@ -97,8 +99,8 @@ export class LassoSelector<T extends SelectableItem> {
       return;
     }
 
-    g.fillStyle = '#ffffff50';
-    g.strokeStyle = '#ffffff90';
+    g.fillStyle = this.colors.lassoBackground;
+    g.strokeStyle = this.colors.lassoOutline;
     g.lineWidth = 2;
 
     const x = Math.min(this.lasso.startX, this.lasso.endX);

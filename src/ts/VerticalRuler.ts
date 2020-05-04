@@ -85,7 +85,7 @@ export class VerticalRuler extends Component {
   protected render(g: CanvasRenderingContext2D): void {
     const bounds = this.getLocalBounds();
 
-    g.fillStyle = '#eee';
+    g.fillStyle = this.model.colors.background;
     g.fillRect(0, 0, this.width, this.height);
 
     let vMin = this.model.verticalRange.min;
@@ -99,19 +99,21 @@ export class VerticalRuler extends Component {
         let pitchClass = i % 12;
         let isBlack = PITCH_PATTERN[pitchClass];
 
-        g.fillStyle = isBlack ? '#00000080' : '#ffffff';
+        g.fillStyle = isBlack ?
+          g.fillStyle = this.model.colors.blackKey :
+          g.fillStyle = this.model.colors.whiteKey;
 
         g.fillRect(bounds.width / 2, y - semiHeight,
           bounds.width / 2, semiHeight);
 
         // stroke
-        g.fillStyle = '#00000020';
+        g.fillStyle = this.model.colors.strokeLight;
         g.fillRect(bounds.width / 2, y - semiHeight,
           bounds.width / 2, 1);
       }
 
       // left corner
-      g.fillStyle = '#00000020';
+      g.fillStyle = this.model.colors.strokeLight;
       g.fillRect(bounds.width / 2, 0, 1, bounds.height);
     }
 
@@ -121,16 +123,16 @@ export class VerticalRuler extends Component {
         let y = bounds.height - (i - vMin) * semiHeight;
         let txt = 'C' + ((i / 12) - 2);
 
-        g.fillStyle = '#000';
+        g.fillStyle = this.model.colors.text;
         g.fillText(txt, 2, y - 3, bounds.width / 2);
 
-        g.fillStyle = '#00000080';
+        g.fillStyle = this.model.colors.strokeDark;
         g.fillRect(0, y, bounds.width, 1);
       }
     }
 
     // right corner
-    g.fillStyle = '#00000020';
+    g.fillStyle = this.model.colors.strokeLight;
     g.rect(bounds.width / 2, 0, 1, bounds.height);
     g.rect(bounds.width - 1, 0, 1, bounds.height);
   }

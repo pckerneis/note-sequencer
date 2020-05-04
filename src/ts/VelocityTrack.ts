@@ -2,7 +2,7 @@ import {Component, ComponentMouseEvent, ComponentPosition} from './BaseComponent
 import {LassoSelector} from './LassoSelector';
 import {SequencerDisplayModel} from './note-sequencer';
 import {Note, NoteGridComponent} from './NoteGridComponent';
-import {getBackgroundAlternateWidth, squaredDistance} from './RenderHelpers';
+import {drawTimeBackground, squaredDistance} from './RenderHelpers';
 
 export class VelocityTrack extends Component {
 
@@ -17,7 +17,7 @@ export class VelocityTrack extends Component {
   constructor(private readonly model: SequencerDisplayModel, private readonly grid: NoteGridComponent) {
     super();
 
-    this.lasso = new LassoSelector<Note>(this, this.grid.selectedSet);
+    this.lasso = new LassoSelector<Note>(this, this.grid.selectedSet, this.model.colors);
 
     this.lasso.findAllElementsInLasso = (lassoBounds) => {
       const vScale = this.height / 128;
@@ -72,7 +72,6 @@ export class VelocityTrack extends Component {
     this._mouseDownResult = this.grid.selectedSet.addToSelectionMouseDown(handle, event.modifiers.shift);
   }
 
-
   public mouseDragged(event: ComponentMouseEvent): void {
     if (!event.wasDragged)
       return;
@@ -96,7 +95,7 @@ export class VelocityTrack extends Component {
 
   protected render(g: CanvasRenderingContext2D): void {
     // Background
-    g.fillStyle = '#00000010';
+    g.fillStyle = this.model.colors.background;
     g.fillRect(0, 0, this.width, this.height);
 
     // Horizontal
@@ -122,31 +121,7 @@ export class VelocityTrack extends Component {
       return;
     }
 
-    const alternate = getBackgroundAlternateWidth(sixteenth, this.model.signature);
-
-    for (let i = 0; i < Math.ceil(vMax); i += incr) {
-      let x = (i - vMin) * sixteenth;
-
-      // Alternating background
-      if (i % (alternate * 2) == 0) {
-        g.fillStyle = '#00000010';
-        g.fillRect(x, 0, alternate * sixteenth, this.height);
-      }
-
-      if (x < 0)
-        continue;
-
-      // Larger lines for measures
-      if (i % ((16 * this.model.signature.upper) / this.model.signature.lower) == 0) {
-        g.fillStyle = '#00000050';
-        g.fillRect(x, 0, 1, this.height);
-      }
-      // Regular lines
-      else if (Math.round(i % incr) == 0) {
-        g.fillStyle = '#00000020';
-        g.fillRect(x, 0, 1, this.height);
-      }
-    }
+    drawTimeBackground(g, this.height, sixteenth, incr, vMin, vMax, this.model.signature, this.model.colors);
   }
 
   private drawVelocityHandles(g: CanvasRenderingContext2D): void {
@@ -161,12 +136,12 @@ export class VelocityTrack extends Component {
       let h = n.velocity * vScale;
       let y = (this.height - h);
 
-      const color = n.selected ? '#000000' : '#888888';
+      const color = n.selected ? this.model.colors.velocityHandleSelected : this.model.colors.velocityHandle;
       g.fillStyle = color;
       g.fillRect(x - 1, y, 2, h);
 
       g.strokeStyle = color;
-      g.fillStyle = '#ffffff';
+      g.fillStyle = this.model.colors.background;
       g.lineWidth = 1.8;
       g.beginPath();
       g.arc(x, y, this.handleRadius, 0, Math.PI * 2);

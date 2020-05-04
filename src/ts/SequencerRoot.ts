@@ -27,10 +27,10 @@ export class SequencerRoot extends Component {
     this._horizontalRuler = new HorizontalRuler(model, this._grid);
     this.addAndMakeVisible(this._horizontalRuler);
 
-    this._velocityRuler = new VelocityRuler(model, this._grid);
+    this._velocityRuler = new VelocityRuler(model);
     this.addAndMakeVisible(this._velocityRuler);
 
-    this._draggableBorder = new DraggableBorder();
+    this._draggableBorder = new DraggableBorder(model);
     this.addAndMakeVisible(this._draggableBorder);
 
     this._velocityTrack = new VelocityTrack(model, this._grid);
