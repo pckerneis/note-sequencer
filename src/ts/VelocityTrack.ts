@@ -1,16 +1,39 @@
 import {Component, ComponentMouseEvent, ComponentPosition} from './BaseComponent';
+import {LassoSelector} from './LassoSelector';
 import {SequencerDisplayModel} from './note-sequencer';
 import {Note, NoteGridComponent} from './NoteGridComponent';
 import {getBackgroundAlternateWidth, squaredDistance} from './RenderHelpers';
 
 export class VelocityTrack extends Component {
 
+  private readonly handleRadius: number = 3;
+
   private _draggingHandle: boolean;
   private _mouseDownResult: boolean;
   private _initialVelocity: number;
 
+  private readonly lasso: LassoSelector<Note>;
+
   constructor(private readonly model: SequencerDisplayModel, private readonly grid: NoteGridComponent) {
     super();
+
+    this.lasso = new LassoSelector<Note>(this, this.grid.selectedSet);
+
+    this.lasso.findAllElementsInLasso = (lassoBounds) => {
+      const vScale = this.height / 128;
+
+      return this.grid.notes.filter((note) => {
+
+        const noteBounds = {
+          x: this.grid.getPositionForTime(note.time) - this.handleRadius,
+          y: this.height - (note.velocity * vScale) - this.handleRadius,
+          width: this.handleRadius * 2,
+          height: this.handleRadius * 2,
+        };
+
+        return Component.boundsIntersect(noteBounds, lassoBounds);
+      })
+    };
   }
 
   public mousePressed(event: ComponentMouseEvent): void {
@@ -30,7 +53,7 @@ export class VelocityTrack extends Component {
         this.grid.selectedSet.deselectAll();
       }
 
-      // lasso.beginLasso();
+      this.lasso.beginLasso(event);
       this._mouseDownResult = true;
 
       return;
@@ -54,19 +77,17 @@ export class VelocityTrack extends Component {
     if (!event.wasDragged)
       return;
 
-
-    if (this._draggingHandle)
+    if (this._draggingHandle) {
       this.dragSelectedHandles(event);
-    /*
-    else
-      lasso.dragLasso();
-     */
+    } else {
+      this.lasso.dragLasso(event);
+    }
 
     this.getParentComponent().repaint();
   }
 
   public mouseReleased(event: ComponentMouseEvent): void {
-    // lasso.endLasso();
+    this.lasso.endLasso();
 
     this.grid.selectedSet.addToSelectionMouseUp(event.wasDragged, event.modifiers.shift, this._mouseDownResult);
 
@@ -85,7 +106,7 @@ export class VelocityTrack extends Component {
 
     this.drawHorizontalBackground(g, sixteenth, hMin, hMax);
 
-    // lasso.drawLasso(g);
+    this.lasso.drawLasso(g);
 
     this.drawVelocityHandles(g);
   }
@@ -148,7 +169,7 @@ export class VelocityTrack extends Component {
       g.fillStyle = '#ffffff';
       g.lineWidth = 1.8;
       g.beginPath();
-      g.arc(x, y, 3, 0, Math.PI * 2);
+      g.arc(x, y, this.handleRadius, 0, Math.PI * 2);
       g.fill();
       g.stroke();
     }
