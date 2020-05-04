@@ -38,6 +38,10 @@ export class VelocityTrack extends Component {
 
     this._initialVelocity = handle.velocity;
 
+    this.grid.selectedSet.getItems().forEach((note) => {
+      note.initialVelocity = note.velocity;
+    });
+
     // handle is actually a reference to the note
     this.grid.moveNoteToFront(handle);
     this._draggingHandle = true;
@@ -157,7 +161,7 @@ export class VelocityTrack extends Component {
     let scaled = dragOffset / vScale;
 
     for (let s of this.grid.selectedSet.getItems()) {
-      s.velocity = this._initialVelocity - scaled;
+      s.velocity = s.initialVelocity - scaled;
       s.velocity = Math.min(127, Math.max(1, s.velocity));
     }
   }

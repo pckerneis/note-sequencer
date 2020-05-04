@@ -5,7 +5,6 @@ import {getBackgroundAlternateWidth} from './RenderHelpers';
 import {SelectedItemSet} from './SelectedItemSet';
 
 export interface Note {
-  initialStart: number;
   time: number,
   pitch: number,
   duration: number,
@@ -14,6 +13,9 @@ export interface Note {
   tempDuration: number,
   hidden: boolean,
   selected: boolean,
+
+  initialStart: number;
+  initialVelocity: number;
 }
 
 interface NotePosition {
@@ -230,6 +232,7 @@ export class NoteGridComponent extends Component {
       selected: true,
       tempDuration: 0,
       initialStart: t,
+      initialVelocity: this._currentVelocity,
     };
 
     this._notes.push(newNote);
