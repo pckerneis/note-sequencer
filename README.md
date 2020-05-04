@@ -9,7 +9,7 @@
 ![alt text](https://github.com/pckerneis/note-sequencer/raw/master/docs/img/main.png "note-sequencer screenshot")
 
 **Key features**
-- Fast note edition
+- Grid snap
 - Multi-selection with keyboard and lasso
 - All colors are customizable
 - Cross-browser and dependency free
