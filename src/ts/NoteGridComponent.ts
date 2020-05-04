@@ -42,10 +42,15 @@ export class NoteGridComponent extends Component {
   private _draggedItem: Note;
 
   // These are used in drag methods and reset in mouseReleased
-  private _initialPosition: NotePosition = null;
   private _initialDuration: number = null;
+  private _maxDurationOffset: number = null;
+
   private _initialStart: number = null;
+  private _minStartOffset: number = null;
+
   private _initialVelocity: number = null;
+
+  private _initialPosition: NotePosition = null;
   private _minDragOffset: NotePosition = null;
   private _maxDragOffset: NotePosition = null;
 
@@ -454,11 +459,22 @@ export class NoteGridComponent extends Component {
 
     let currentDuration = this._draggedItem.duration;
 
-    if (this._initialDuration === null)
+    if (this._initialDuration == null) {
       this._initialDuration = currentDuration;
 
+      let selectionRight: number = null;
+      this._selectedSet.getItems().forEach((note) => {
+        if (selectionRight == null || note.time + note.duration > selectionRight) {
+          selectionRight = note.time + note.duration;
+        }
+      });
+
+      this._maxDurationOffset = this.model.maxTimeRange.max - selectionRight;
+      console.log(this._maxDurationOffset);
+    }
+
     let dragOffset = event.x - event.positionAtMouseDown.x;
-    let scaledX = dragOffset / this.getSixteenthWidth();
+    let scaledX = Math.min(this._maxDurationOffset, dragOffset / this.getSixteenthWidth());
 
     // Apply to itemDragged
     this._draggedItem.duration = this._initialDuration + scaledX;
@@ -498,10 +514,20 @@ export class NoteGridComponent extends Component {
       for (let s of this._selectedSet.getItems()) {
         s.initialStart = s.time;
       }
+
+      let selectionLeft: number = null;
+
+      this._selectedSet.getItems().forEach((note) => {
+        if (selectionLeft == null || note.time < selectionLeft) {
+          selectionLeft = note.time;
+        }
+      });
+
+      this._minStartOffset = -selectionLeft;
     }
 
     let dragOffset = event.x - event.positionAtMouseDown.x;
-    let scaledX = dragOffset / this.getSixteenthWidth();
+    let scaledX = Math.max(this._minStartOffset, dragOffset / this.getSixteenthWidth());
     let currentEndPoint = this._draggedItem.time + this._draggedItem.duration;
 
     // Apply to itemDragged
