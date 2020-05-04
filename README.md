@@ -6,6 +6,15 @@
 
 **note-sequencer** is a lightweight interactive and customizable note sequencer. It is based on Custom Elements and Canvas APIs.
 
+![alt text](https://github.com/pckerneis/note-sequencer/raw/master/docs/img/main.png "note-sequencer screenshot")
+
+**Key features**
+- Fast note edition
+- Multi-selection with keyboard and lasso
+- All colors are customizable
+- Cross-browser and dependency free
+- Lightweight: the minified source is ~33kB
+
 ## Installation
 
 Clone the repository and install dependencies using
@@ -20,7 +29,7 @@ From a HTML page, insert `note-sequencer.js` into your webpage and add a `note-s
 <note-sequencer></note-sequencer>
 ```
 
-You can also create a `NoteSequencer` object and add it to the DOM with Javascript.
+You can also create a `NoteSequencer` object and add it to the document with Javascript.
 ```javascript
 import { NoteSequencer } from './note-sequencer.js';
 
