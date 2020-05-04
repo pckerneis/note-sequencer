@@ -46,6 +46,8 @@ export class NoteGridComponent extends Component {
   private _initialDuration: number = null;
   private _initialStart: number = null;
   private _initialVelocity: number = null;
+  private _minDragOffset: NotePosition = null;
+  private _maxDragOffset: NotePosition = null;
 
   constructor(private readonly model: SequencerDisplayModel) {
     super();
@@ -314,43 +316,61 @@ export class NoteGridComponent extends Component {
       pitch: this._draggedItem.pitch,
     };
 
-    if (this._initialPosition == null)
+    if (this._initialPosition == null) {
+      // We're starting a new drag
       this._initialPosition = currentPosition;
+
+      // Find bounding box for selection
+      let selectionLeft: number = Infinity;
+      let selectionRight: number = -Infinity;
+      let selectionTop: number = Infinity;
+      let selectionBottom: number = -Infinity;
+
+      this._selectedSet.getItems().forEach((note) => {
+        if (selectionLeft == null || note.time < selectionLeft) {
+          selectionLeft = note.time;
+        }
+
+        if (selectionRight == null || note.time + note.duration > selectionRight) {
+          selectionRight = note.time + note.duration;
+        }
+
+        if (selectionTop == null || note.pitch - 1 < selectionTop) {
+          selectionTop = note.pitch - 1;
+        }
+
+        if (selectionBottom == null || note.pitch > selectionBottom) {
+          selectionBottom = note.pitch;
+        }
+      });
+
+      // Deduce constraints for this box
+      this._minDragOffset = {
+        time: -selectionLeft,
+        pitch: -selectionTop,
+      };
+
+      this._maxDragOffset = {
+        time: this.model.maxTimeRange.max - selectionRight,
+        pitch: MAX_PITCH - selectionBottom,
+      };
+    }
 
     let dragOffset = {
       x: event.x - event.positionAtMouseDown.x,
       y: event.y - event.positionAtMouseDown.y,
     };
 
-    /*
-    let minOffset: ComponentPosition = { x: Infinity, y: Infinity };
-    let maxOffset: ComponentPosition = { x: -Infinity, y: -Infinity };
+    const scaledX = Math.max(this._minDragOffset.time,
+      Math.min(dragOffset.x / this.getSixteenthWidth(),
+        this._maxDragOffset.time));
 
-    this._selectedSet.getItems().forEach((note) => {
-      minOffset = {
-        x: Math.min(-(note.time - this.model.maxTimeRange.min), minOffset.x),
-        y: 0, //Math.min(-(note.pitch + 1), minOffset.y),
-      };
-
-      maxOffset = {
-        x: Math.max((this.model.maxTimeRange.max - note.time), maxOffset.x),
-        y: 0, //Math.max((MAX_PITCH - note.pitch), maxOffset.y),
-      };
-    });
-
-    console.log(minOffset, maxOffset);
-
-    const scaledX = Math.max(minOffset.x, Math.min(dragOffset.x / this.getSixteenthWidth(), maxOffset.x));
-    const scaledY = Math.max(minOffset.y, Math.min(dragOffset.y / this.getSemitoneHeight(), maxOffset.y));
-
-    console.log(scaledX, scaledY);
-     */
-
-    const scaledX = dragOffset.x / this.getSixteenthWidth();
-    const scaledY = dragOffset.y / this.getSemitoneHeight();
+    const scaledY = Math.max(this._minDragOffset.pitch,
+      Math.min(- dragOffset.y / this.getSemitoneHeight(),
+        this._maxDragOffset.pitch));
 
     // Apply translate to itemDragged
-    this._draggedItem.pitch = Math.round(this._initialPosition.pitch - scaledY);
+    this._draggedItem.pitch = Math.round(this._initialPosition.pitch + scaledY);
     this._draggedItem.time = this._initialPosition.time + scaledX;
 
     // Snap to grid
@@ -558,7 +578,7 @@ export class NoteGridComponent extends Component {
     for (let i = 0; i < Math.ceil(vMax); i += incr) {
       let x = (i - vMin) * sixteenth;
 
-      // Alterning background
+      // Alternate background
       if (i % (alternate * 2) == 0) {
         g.fillStyle = '#ccc';
         g.fillRect(x, 0, alternate * sixteenth, this.height);
@@ -648,7 +668,7 @@ export class NoteGridComponent extends Component {
         if (s.pitch != n.pitch)
           continue;
 
-        // If s preceeds n
+        // If s precedes n
         if (s.time <= n.time) {
           // If s overlaps over n
           if (n.time < s.time + s.duration) {
@@ -660,7 +680,7 @@ export class NoteGridComponent extends Component {
                 n.hidden = true;
             }
           }
-          // If n preceeds s
+          // If n precedes s
         } else {
           // If s overlaps over n, shorten n
           if (s.time < n.time + n.duration) {
