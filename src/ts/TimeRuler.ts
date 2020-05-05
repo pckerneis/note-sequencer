@@ -1,48 +1,65 @@
-import {Component, ComponentMouseEvent, ComponentPosition} from './BaseComponent';
-import {SequencerDisplayModel} from './note-sequencer';
+import {Component, ComponentMouseEvent} from './BaseComponent';
+import {Range, SequencerDisplayModel} from './note-sequencer';
 import {NoteGridComponent} from './NoteGridComponent';
+import {clamp} from './utils';
 
 export class TimeRuler extends Component {
-  private beingDragged: boolean = true;
-  private lastMousePosition: ComponentPosition;
+  private timeAtMouseDown: number;
+  private rangeAtMouseDown: Range;
 
   constructor(private readonly model: SequencerDisplayModel, private readonly grid: NoteGridComponent) {
     super();
   }
 
-
   public mousePressed(event: ComponentMouseEvent): void {
-    this.beingDragged = true;
-    this.lastMousePosition = event.position;
+    this.timeAtMouseDown = this.grid.getTimeAt(event.position.x);
+    this.rangeAtMouseDown = {...this.model.visibleTimeRange};
   }
 
   public doubleClicked(event: ComponentMouseEvent): void {
-    this.model.visibleTimeRange.min = 0;
-    this.model.visibleTimeRange.max = this.model.maxTimeRange.max;
+    this.model.visibleTimeRange.start = 0;
+    this.model.visibleTimeRange.end = this.model.maxTimeRange.end;
     this.getParentComponent().repaint();
   }
 
-  public mouseReleased(event: ComponentMouseEvent): void {
-    this.beingDragged = false;
-  }
-
   public mouseDragged(event: ComponentMouseEvent): void {
-    if (this.beingDragged) {
-      let xOffset = event.position.x - this.lastMousePosition.x;
-      let yOffset = event.position.y - this.lastMousePosition.y;
-      this.lastMousePosition = event.position;
+    const dragSensitivity = 0.005;
+    const minimalRange = 1;
 
-      this.translate(-xOffset);
+    // Compute the zoom factor
+    const dragOffset = event.position.y - event.positionAtMouseDown.y;
+    const zoomFactor = 1 + (dragOffset * dragSensitivity);
 
-      if (Math.abs(yOffset) >= 3) {
-        if (yOffset > 0)
-          this.zoomIn();
-        else if (yOffset < 0)
-          this.zoomOut();
-      }
+    // Apply this factor to the current range
+    const originalRange = this.rangeAtMouseDown.end - this.rangeAtMouseDown.start;
+    const newRange = originalRange * zoomFactor;
+    const amountToAdd = (newRange - originalRange) / 2;
 
-      this.getParentComponent().repaint();
-    }
+    let newStart = this.rangeAtMouseDown.start + amountToAdd;
+    let newEnd = this.rangeAtMouseDown.end - amountToAdd;
+
+    // Compute the quantity to remove to ensure the resulting range is above the minimal range
+    const excess = Math.max(0, minimalRange - (newEnd - newStart));
+    newStart -= excess * 0.5;
+    newEnd += excess * 0.5;
+
+    // Pre-apply the new range
+    this.model.visibleTimeRange.start = Math.max(this.model.maxTimeRange.start, newStart);
+    this.model.visibleTimeRange.end = Math.min(this.model.maxTimeRange.end, newEnd);
+
+    // Compute the offset to the anchor under the mouse
+    let offset = this.timeAtMouseDown - this.grid.getTimeAt(event.position.x);
+
+    // Constraint this offset to stay in the maximal range
+    const distanceToLeft = this.model.maxTimeRange.start - this.model.visibleTimeRange.start;
+    const distanceToRight = this.model.visibleTimeRange.end - this.model.maxTimeRange.end;
+    offset = clamp(offset, distanceToLeft, -distanceToRight);
+
+    // Apply the constrained offset
+    this.model.visibleTimeRange.start = Math.max(this.model.maxTimeRange.start, newStart + offset);
+    this.model.visibleTimeRange.end = Math.min(this.model.maxTimeRange.end, newEnd + offset);
+
+    this.getParentComponent().repaint();
   }
 
   protected resized(): void {
@@ -54,10 +71,14 @@ export class TimeRuler extends Component {
     g.fillStyle = this.model.colors.background;
     g.fillRect(0, 0, this.width, this.height);
 
-    let vMin = this.model.visibleTimeRange.min;
-    let vMax = this.model.visibleTimeRange.max;
-    let visibleRange = vMax - vMin;
-    let sixteenth = bounds.width / visibleRange;
+    const start = this.model.visibleTimeRange.start;
+    const end = this.model.visibleTimeRange.end;
+    const sixteenth = this.grid.getSixteenthWidth();
+
+    if (sixteenth < 0.0001 || sixteenth === Infinity) {
+      // escape overly intensive calculation or even potential infinite loop
+      return;
+    }
 
     let minLabelSpacing = 50;
     let minGraduationSpacing = 5;
@@ -77,8 +98,8 @@ export class TimeRuler extends Component {
         incr *= .5;
     }
 
-    for (let i = 0; i < Math.ceil(vMax); i += incr) {
-      let x = (i - vMin) * sixteenth;
+    for (let i = 0; i < Math.ceil(end); i += incr) {
+      let x = (i - start) * sixteenth;
 
       if (x < 0)
         continue;
@@ -100,56 +121,5 @@ export class TimeRuler extends Component {
     // Bottom border
     g.fillStyle = this.model.colors.strokeDark;
     g.fillRect(0, bounds.height - 1, bounds.width, 1);
-  }
-
-  private zoomIn(): void {
-    let vMin = this.model.visibleTimeRange.min;
-    let vMax = this.model.visibleTimeRange.max;
-    let visibleRange = vMax - vMin;
-    let sixteenth = this.width/ visibleRange;
-
-    if (sixteenth < 500) {
-      let zoomAmount = visibleRange / this.model.zoomSensitivity;
-
-      this.model.visibleTimeRange.min += zoomAmount;
-      this.model.visibleTimeRange.max -= zoomAmount;
-    }
-  }
-
-  private zoomOut(): void {
-    let vMin = this.model.visibleTimeRange.min;
-    let vMax = this.model.visibleTimeRange.max;
-    let visibleRange = vMax - vMin;
-    let zoomAmount = visibleRange / this.model.zoomSensitivity;
-
-    this.model.visibleTimeRange.min -= zoomAmount;
-    this.model.visibleTimeRange.max += zoomAmount;
-
-    this.model.visibleTimeRange.max = Math.min (this.model.visibleTimeRange.max, this.model.maxTimeRange.max);
-    this.model.visibleTimeRange.min = Math.max (this.model.visibleTimeRange.min, this.model.maxTimeRange.min);
-  }
-
-  private translate(amount: number): void {
-    let vMin = this.model.visibleTimeRange.min;
-    let vMax = this.model.visibleTimeRange.max;
-    let visibleRange = vMax - vMin;
-    let sixteenth = this.width / visibleRange;
-
-    if (amount < 0) {
-      let desiredMin = vMin + amount / sixteenth;
-      let clipped = Math.max (desiredMin, 0);
-      let correctAmount = (clipped - desiredMin) + (amount / sixteenth);
-
-      this.model.visibleTimeRange.min = clipped;
-      this.model.visibleTimeRange.max += correctAmount;
-
-    } else if (amount > 0) {
-      let desiredMax = vMax + amount / sixteenth;
-      let clipped = Math.min (desiredMax, this.model.maxTimeRange.max);
-      let correctAmount = (clipped - desiredMax) + (amount / sixteenth);
-
-      this.model.visibleTimeRange.max = clipped;
-      this.model.visibleTimeRange.min += correctAmount;
-    }
   }
 }

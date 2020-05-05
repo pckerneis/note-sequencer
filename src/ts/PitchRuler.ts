@@ -73,8 +73,8 @@ export class PitchRuler extends Component {
   }
 
   public doubleClicked(event: ComponentMouseEvent): void {
-    this.model.verticalRange.min = MIN_PITCH;
-    this.model.verticalRange.max = MAX_PITCH;
+    this.model.verticalRange.start = MIN_PITCH;
+    this.model.verticalRange.end = MAX_PITCH;
 
     this.getParentComponent().repaint();
   }
@@ -88,8 +88,8 @@ export class PitchRuler extends Component {
     g.fillStyle = this.model.colors.background;
     g.fillRect(0, 0, this.width, this.height);
 
-    let vMin = this.model.verticalRange.min;
-    let vMax = this.model.verticalRange.max;
+    let vMin = this.model.verticalRange.start;
+    let vMax = this.model.verticalRange.end;
     let semiHeight = this.grid.getSemitoneHeight();
 
     // piano roll
@@ -150,37 +150,37 @@ export class PitchRuler extends Component {
   }
 
   private zoomIn(): void {
-    const range = this.model.verticalRange.max - this.model.verticalRange.min;
+    const range = this.model.verticalRange.end - this.model.verticalRange.start;
     const semiHeight = this.grid.getSemitoneHeight();
 
     if (semiHeight < MAX_SEMI_H) {
       const zoomAmount = range / this.model.zoomSensitivity;
 
-      this.model.verticalRange.min += zoomAmount;
-      this.model.verticalRange.max -= zoomAmount;
+      this.model.verticalRange.start += zoomAmount;
+      this.model.verticalRange.end -= zoomAmount;
 
       this.getParentComponent().repaint();
     }
   }
 
   private zoomOut(): void {
-    const vMin = this.model.verticalRange.min;
-    const vMax = this.model.verticalRange.max;
+    const vMin = this.model.verticalRange.start;
+    const vMax = this.model.verticalRange.end;
     const range = vMax - vMin;
     const zoomAmount = range / this.model.zoomSensitivity;
 
-    this.model.verticalRange.min -= zoomAmount;
-    this.model.verticalRange.max += zoomAmount;
+    this.model.verticalRange.start -= zoomAmount;
+    this.model.verticalRange.end += zoomAmount;
 
-    this.model.verticalRange.max = Math.min(this.model.verticalRange.max, MAX_PITCH);
-    this.model.verticalRange.min = Math.max(this.model.verticalRange.min, MIN_PITCH);
+    this.model.verticalRange.end = Math.min(this.model.verticalRange.end, MAX_PITCH);
+    this.model.verticalRange.start = Math.max(this.model.verticalRange.start, MIN_PITCH);
 
     this.getParentComponent().repaint();
   }
 
   private translate(amount: number): void {
-    const vMin = this.model.verticalRange.min;
-    const vMax = this.model.verticalRange.max;
+    const vMin = this.model.verticalRange.start;
+    const vMax = this.model.verticalRange.end;
     const semiHeight = this.grid.getSemitoneHeight();
 
     if (amount < 0) {
@@ -188,8 +188,8 @@ export class PitchRuler extends Component {
       const clipped = Math.max(desiredMin, MIN_PITCH);
       const correctAmount = (clipped - desiredMin) + (amount / semiHeight);
 
-      this.model.verticalRange.min = clipped;
-      this.model.verticalRange.max += correctAmount;
+      this.model.verticalRange.start = clipped;
+      this.model.verticalRange.end += correctAmount;
 
       this.getParentComponent().repaint();
     } else if (amount > 0) {
@@ -197,8 +197,8 @@ export class PitchRuler extends Component {
       const clipped = Math.min(desiredMax, MAX_PITCH);
       const correctAmount = (clipped - desiredMax) + (amount / semiHeight);
 
-      this.model.verticalRange.max = clipped;
-      this.model.verticalRange.min += correctAmount;
+      this.model.verticalRange.end = clipped;
+      this.model.verticalRange.start += correctAmount;
 
       this.getParentComponent().repaint();
     }

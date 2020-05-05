@@ -13,9 +13,9 @@ declare class ResizeObserver {
   public observe(...elements: HTMLElement[]): any;
 }
 
-interface Range {
-  min: number,
-  max: number,
+export interface Range {
+  start: number,
+  end: number,
 }
 
 export interface TimeSignature {
@@ -90,9 +90,9 @@ export class NoteSequencer extends HTMLElement {
     super();
 
     this._model = {
-      verticalRange: {min: 58, max: 58 + 24},
-      visibleTimeRange: {min: 0, max: 16},
-      maxTimeRange: {min: 0, max: 32},
+      verticalRange: {start: 58, end: 58 + 24},
+      visibleTimeRange: {start: 0, end: 16},
+      maxTimeRange: {start: 0, end: 32},
       signature: {upper: 4, lower: 4},
       zoomSensitivity: 30,
       adaptiveMode: true,

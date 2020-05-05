@@ -99,11 +99,11 @@ export class VelocityTrack extends Component {
     g.fillRect(0, 0, this.width, this.height);
 
     // Horizontal
-    let hMin = this.model.visibleTimeRange.min;
-    let hMax = this.model.visibleTimeRange.max;
+    let start = this.model.visibleTimeRange.start;
+    let end = this.model.visibleTimeRange.end;
     let sixteenth = this.grid.getSixteenthWidth();
 
-    this.drawHorizontalBackground(g, sixteenth, hMin, hMax);
+    this.drawHorizontalBackground(g, sixteenth, start, end);
 
     this.lasso.drawLasso(g);
 

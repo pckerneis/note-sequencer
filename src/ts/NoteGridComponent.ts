@@ -92,15 +92,15 @@ export class NoteGridComponent extends Component {
     g.fillRect(0, 0, this.width, this.height);
 
     // Horizontal
-    let hMin = this.model.visibleTimeRange.min;
-    let hMax = this.model.visibleTimeRange.max;
+    let hMin = this.model.visibleTimeRange.start;
+    let hMax = this.model.visibleTimeRange.end;
     let sixteenth = this.getSixteenthWidth();
 
     this.drawHorizontalBackground(g, sixteenth, hMin, hMax);
 
     // Vertical
-    let vMin = this.model.verticalRange.min;
-    let vMax = this.model.verticalRange.max;
+    let vMin = this.model.verticalRange.start;
+    let vMax = this.model.verticalRange.end;
     let semiHeight = this.getSemitoneHeight();
 
     if (semiHeight > MIN_SEMI_H) {
@@ -156,11 +156,11 @@ export class NoteGridComponent extends Component {
   // Convenience methods
 
   public getSixteenthWidth(): number {
-    return this.width / (this.model.visibleTimeRange.max - this.model.visibleTimeRange.min);
+    return this.width / (this.model.visibleTimeRange.end - this.model.visibleTimeRange.start);
   }
 
-  public getTimeForScreenPos(pos: number): number {
-    let vMin = this.model.visibleTimeRange.min;
+  public getTimeAt(pos: number): number {
+    let vMin = this.model.visibleTimeRange.start;
     let sixteenth = this.getSixteenthWidth();
     const x = this.getPosition().x;
 
@@ -171,7 +171,7 @@ export class NoteGridComponent extends Component {
   }
 
   public getPitchAt(pos: number): number {
-    let vMin = this.model.verticalRange.min;
+    let vMin = this.model.verticalRange.start;
     let semi = this.getSemitoneHeight();
     const y = this.getPosition().y;
 
@@ -183,8 +183,8 @@ export class NoteGridComponent extends Component {
   }
 
   public getPositionForTime(time: number): number {
-    let vMin = this.model.visibleTimeRange.min;
-    let vMax = this.model.visibleTimeRange.max;
+    let vMin = this.model.visibleTimeRange.start;
+    let vMax = this.model.visibleTimeRange.end;
     let vRange = vMax - vMin;
     let sixteenth = this.width / vRange;
 
@@ -193,11 +193,11 @@ export class NoteGridComponent extends Component {
 
   public getPositionForPitch(pitch: number): number {
     let semiHeight = this.getSemitoneHeight();
-    return this.height - (pitch - this.model.verticalRange.min) * semiHeight;
+    return this.height - (pitch - this.model.verticalRange.start) * semiHeight;
   }
 
   public getSemitoneHeight(): number {
-    return this.height / (this.model.verticalRange.max - this.model.verticalRange.min);
+    return this.height / (this.model.verticalRange.end - this.model.verticalRange.start);
   }
   
   //===============================================================================
@@ -218,7 +218,7 @@ export class NoteGridComponent extends Component {
       return;
     }
 
-    let t = this.snapToGrid (this.getTimeForScreenPos (event.position.x));
+    let t = this.snapToGrid (this.getTimeAt (event.position.x));
     let p = Math.round (this.getPitchAt(event.position.y));
     let d = this.getLockRatio();
 
@@ -368,7 +368,7 @@ export class NoteGridComponent extends Component {
       };
 
       this._maxDragOffset = {
-        time: this.model.maxTimeRange.max - selectionRight,
+        time: this.model.maxTimeRange.end - selectionRight,
         pitch: MAX_PITCH - selectionBottom,
       };
     }
@@ -469,6 +469,10 @@ export class NoteGridComponent extends Component {
     let sixteenth = this.getSixteenthWidth();
     let ratio: number;
 
+    if (sixteenth < 0.00001) {
+      return null;
+    }
+
     if (this.model.adaptiveMode) {
       let desiredSpacing = this.adaptiveValues[this.adaptiveIndex] * this.width;
 
@@ -506,7 +510,7 @@ export class NoteGridComponent extends Component {
         }
       });
 
-      this._maxDurationOffset = this.model.maxTimeRange.max - selectionRight;
+      this._maxDurationOffset = this.model.maxTimeRange.end - selectionRight;
     }
 
     let dragOffset = event.position.x - event.positionAtMouseDown.x;
