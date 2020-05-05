@@ -63,6 +63,8 @@ export interface ComponentMouseEvent {
 }
 
 export abstract class Component {
+  public mouseCursor: string;
+
   private _children: Component[] = [];
   private _parent: Component = null;
   private _visible: boolean = true;
@@ -207,7 +209,7 @@ export abstract class Component {
   }
 
   public paint(context: CanvasRenderingContext2D): void {
-    if (this._visible && this._needRepaint && this._bounds.width > 0 && this._bounds.height > 0) {
+    if (this._visible && this._needRepaint && Math.floor(this._bounds.width) > 0 && Math.floor(this._bounds.height) > 0) {
       let g = Component.createOffscreenCanvas(this._bounds.width, this._bounds.height);
 
       this.render(g.getContext('2d'));
@@ -400,6 +402,8 @@ export class RootComponentHolder {
       }
 
       hit(event, (component) => {
+        document.body.style.cursor = component.mouseCursor;
+
         component.mouseMoved({
           positionAtMouseDown: mouseDownPos,
           x, y,
@@ -410,6 +414,8 @@ export class RootComponentHolder {
       });
 
       if (event.buttons > 0 && pressedComponent != null) {
+        document.body.style.cursor = pressedComponent.mouseCursor;
+
         pressedComponent.mouseDragged({
           positionAtMouseDown: mouseDownPos,
           x, y,

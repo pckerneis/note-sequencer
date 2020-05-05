@@ -1,5 +1,5 @@
 import {Component} from './BaseComponent';
-import {DraggableBorder} from './DraggableBorder';
+import {DraggableBorder, DraggableBorderOwner} from './DraggableBorder';
 import {HorizontalRuler} from './HorizontalRuler';
 import {SequencerDisplayModel} from './note-sequencer';
 import {NoteGridComponent} from './NoteGridComponent';
@@ -7,13 +7,15 @@ import {VelocityRuler} from './VelocityRuler';
 import {VelocityTrack} from './VelocityTrack';
 import {VerticalRuler} from './VerticalRuler';
 
-export class SequencerRoot extends Component {
+export class SequencerRoot extends Component implements DraggableBorderOwner {
   private readonly _grid: NoteGridComponent;
   private readonly _verticalRuler: VerticalRuler;
   private readonly _horizontalRuler: HorizontalRuler;
   private readonly _velocityRuler: VelocityRuler;
   private readonly _draggableBorder: DraggableBorder;
   private readonly _velocityTrack: VelocityTrack;
+
+  private draggableBorderPosition: number;
 
   constructor(model: SequencerDisplayModel) {
     super();
@@ -30,7 +32,7 @@ export class SequencerRoot extends Component {
     this._velocityRuler = new VelocityRuler(model);
     this.addAndMakeVisible(this._velocityRuler);
 
-    this._draggableBorder = new DraggableBorder(model);
+    this._draggableBorder = new DraggableBorder(model, this);
     this.addAndMakeVisible(this._draggableBorder);
 
     this._velocityTrack = new VelocityTrack(model, this._grid);
@@ -38,9 +40,13 @@ export class SequencerRoot extends Component {
   }
 
   public resized(): void {
+    if (this.draggableBorderPosition == null) {
+      this.draggableBorderPosition = this.height - 80;
+    }
+
     const rulerWidth = 40;
     const rulerHeight = 40;
-    const velocityHeight = 80;
+    const velocityHeight = this.height - this.draggableBorderPosition;
     const borderHeight = 4;
 
     const bounds = this.getLocalBounds();
@@ -65,5 +71,18 @@ export class SequencerRoot extends Component {
   public render(g: CanvasRenderingContext2D): void {
     g.fillStyle = '#eee';
     g.fillRect(0, 0, this.width, this.height);
+  }
+
+  public borderDragged(newPosition: number): void {
+    this.draggableBorderPosition = Math.max(80, Math.min(newPosition - this.getPosition().y, this.height));
+
+    const snapThreshold = 50;
+
+    if (this.draggableBorderPosition > this.height - snapThreshold) {
+      this.draggableBorderPosition = this.draggableBorderPosition > this.height - snapThreshold / 2 ?
+        this.height : this.height - snapThreshold;
+    }
+
+    this.resized();
   }
 }
