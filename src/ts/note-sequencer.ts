@@ -142,16 +142,13 @@ export class NoteSequencer extends HTMLElement {
     this.draw();
   }
 
-  /**
-   * Draws the note grid.
-   */
   public draw(): void {
     this._rootComponent.render();
   }
 
   private resize(): void {
     const boundingClientRect = this.getBoundingClientRect();
-    this._rootComponent.resize(boundingClientRect.width, boundingClientRect.height);
+    this._rootComponent.resize(Math.ceil(boundingClientRect.width), Math.ceil(boundingClientRect.height));
     this.draw();
   }
 

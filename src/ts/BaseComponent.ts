@@ -13,15 +13,20 @@ export interface IBounds {
 }
 
 export class ComponentBounds implements IBounds {
-  constructor(
-    public x: number = 0,
-    public y: number = 0,
-    public width: number = 0,
-    public height: number = 0) {
+  public x: number = 0;
+  public y: number = 0;
+  public width: number = 0;
+  public height: number = 0;
+
+  constructor(x: number = 0, y: number = 0, width: number = 0, height: number = 0) {
+    this.x = Math.ceil(x);
+    this.y = Math.ceil(y);
+    this.width = Math.ceil(width);
+    this.height = Math.ceil(height);
   }
 
   public removeFromLeft(amount: number): ComponentBounds {
-    amount = Math.max(0, Math.min(amount, this.width));
+    amount = Math.floor(Math.max(0, Math.min(amount, this.width)));
 
     const removed = new ComponentBounds(this.x, this.y, amount, this.height);
 
@@ -32,7 +37,7 @@ export class ComponentBounds implements IBounds {
   }
 
   public removeFromTop(amount: number): ComponentBounds {
-    amount = Math.max(0, Math.min(amount, this.height));
+    amount = Math.floor(Math.max(0, Math.min(amount, this.height)));
 
     const removed = new ComponentBounds(this.x, this.y, this.width, amount);
 
@@ -43,7 +48,7 @@ export class ComponentBounds implements IBounds {
   }
 
   public removeFromBottom(amount: number): ComponentBounds {
-    amount = Math.max(0, Math.min(amount, this.height));
+    amount = Math.floor(Math.max(0, Math.min(amount, this.height)));
 
     const removed = new ComponentBounds(this.x, this.height - amount, this.width, amount);
 
@@ -87,11 +92,11 @@ export abstract class Component {
   }
 
   public get width(): number {
-    return this._bounds.width;
+    return Math.ceil(this._bounds.width);
   }
 
   public get height(): number {
-    return this._bounds.height;
+    return Math.ceil(this._bounds.height);
   }
 
   public set rootHolder(holder: RootComponentHolder) {
@@ -210,11 +215,11 @@ export abstract class Component {
 
   public paint(context: CanvasRenderingContext2D): void {
     if (this._visible && this._needRepaint && Math.floor(this._bounds.width) > 0 && Math.floor(this._bounds.height) > 0) {
-      let g = Component.createOffscreenCanvas(this._bounds.width, this._bounds.height);
+      let g = Component.createOffscreenCanvas(Math.ceil(this._bounds.width), Math.ceil(this._bounds.height));
 
       this.render(g.getContext('2d'));
 
-      context.drawImage(g, this._bounds.x, this._bounds.y);
+      context.drawImage(g, Math.floor(this._bounds.x), Math.floor(this._bounds.y));
     }
 
     for (let c of this._children) {

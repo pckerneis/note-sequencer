@@ -237,8 +237,6 @@ export class NoteGridComponent extends Component {
     this._notes.push(newNote);
     this._selectedSet.setUniqueSelection(newNote);
 
-    console.log('note added');
-
     this.removeOverlaps(true);
 
     // We start dragging the end point of this note and its velocity
@@ -509,7 +507,6 @@ export class NoteGridComponent extends Component {
       });
 
       this._maxDurationOffset = this.model.maxTimeRange.max - selectionRight;
-      console.log(this._maxDurationOffset);
     }
 
     let dragOffset = event.x - event.positionAtMouseDown.x;
