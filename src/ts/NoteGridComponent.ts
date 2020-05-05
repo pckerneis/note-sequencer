@@ -94,8 +94,7 @@ export class NoteGridComponent extends Component {
     // Horizontal
     let hMin = this.model.visibleTimeRange.min;
     let hMax = this.model.visibleTimeRange.max;
-    let hRange = hMax - hMin;
-    let sixteenth = this.width / hRange;
+    let sixteenth = this.getSixteenthWidth();
 
     this.drawHorizontalBackground(g, sixteenth, hMin, hMax);
 
@@ -473,7 +472,7 @@ export class NoteGridComponent extends Component {
     let ratio: number;
 
     if (this.model.adaptiveMode) {
-      let desiredSpacing = this.adaptiveValues[this.adaptiveIndex] * this.height;
+      let desiredSpacing = this.adaptiveValues[this.adaptiveIndex] * this.width;
 
       ratio = (16 * this.model.signature.upper) / this.model.signature.lower;
 
