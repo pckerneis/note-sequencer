@@ -25,10 +25,10 @@ export class LassoSelector<T extends SelectableItem> {
     const ownerPos = this.ownerComp.getPosition();
 
     this.lasso = {
-      startX: event.x - ownerPos.x,
-      startY: event.y - ownerPos.y,
-      endX: event.x - ownerPos.x,
-      endY: event.y - ownerPos.y,
+      startX: event.position.x - ownerPos.x,
+      startY: event.position.y - ownerPos.y,
+      endX: event.position.x - ownerPos.x,
+      endY: event.position.y - ownerPos.y,
       commuteMode: event.modifiers.shift,
       commutableSelection: [],
     };
@@ -49,8 +49,8 @@ export class LassoSelector<T extends SelectableItem> {
 
     const ownerPos = this.ownerComp.getPosition();
 
-    this.lasso.endX = event.x - ownerPos.x;
-    this.lasso.endY = event.y - ownerPos.y;
+    this.lasso.endX = event.position.x - ownerPos.x;
+    this.lasso.endY = event.position.y - ownerPos.y;
 
     let lassoBounds: IBounds = {
       x: Math.min(this.lasso.startX, this.lasso.endX),

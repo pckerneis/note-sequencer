@@ -2,7 +2,7 @@ import {Component, ComponentMouseEvent} from './BaseComponent';
 import {MAX_PITCH, MAX_SEMI_H, MIN_PITCH, MIN_SEMI_H, PITCH_PATTERN, SequencerDisplayModel} from './note-sequencer';
 import {NoteGridComponent} from './NoteGridComponent';
 
-export class VerticalRuler extends Component {
+export class PitchRuler extends Component {
   private lastMouseX: number;
   private lastMouseY: number;
 
@@ -22,27 +22,27 @@ export class VerticalRuler extends Component {
   public mousePressed(event: ComponentMouseEvent): void {
     const pos = this.getPosition();
 
-    if ((! this.isPianoRollVisible()) || event.x < pos.x + this.width / 2) {
+    if ((! this.isPianoRollVisible()) || event.position.x < pos.x + this.width / 2) {
       // If we're not on the piano roll (bc it's hidden or clicking on its left)
       this.dragStarted = true;
-    } else if (this.isPianoRollVisible() && event.x > pos.x + this.width / 2) {
+    } else if (this.isPianoRollVisible() && event.position.x > pos.x + this.width / 2) {
       // If we're on the piano roll
-      this.previewNoteAt(event.y);
+      this.previewNoteAt(event.position.y);
     }
 
-    this.lastMouseX = event.x;
-    this.lastMouseY = event.y;
+    this.lastMouseX = event.position.x;
+    this.lastMouseY = event.position.y;
   }
 
   public mouseDragged(event: ComponentMouseEvent): void {
     const pos = this.getPosition();
 
     if (this.dragStarted) {
-      let yOffset = event.y - this.lastMouseY;
-      let xOffset = event.x - this.lastMouseX;
+      let yOffset = event.position.y - this.lastMouseY;
+      let xOffset = event.position.x - this.lastMouseX;
 
-      this.lastMouseY = event.y;
-      this.lastMouseX = event.x;
+      this.lastMouseY = event.position.y;
+      this.lastMouseX = event.position.x;
 
       if (this.shouldTranslate(xOffset, yOffset)) {
         this.translate(yOffset);
@@ -53,8 +53,8 @@ export class VerticalRuler extends Component {
           this.zoomOut();
         }
       }
-    } else if (this.isPianoRollVisible() && event.x > pos.x + this.width / 2) {
-      this.previewNoteAt(event.y);
+    } else if (this.isPianoRollVisible() && event.position.x > pos.x + this.width / 2) {
+      this.previewNoteAt(event.position.y);
     }
   }
 
@@ -112,7 +112,7 @@ export class VerticalRuler extends Component {
           bounds.width / 2, 1);
       }
 
-      // left corner
+      // left border
       g.fillStyle = this.model.colors.strokeLight;
       g.fillRect(bounds.width / 2, 0, 1, bounds.height);
     }
@@ -131,10 +131,9 @@ export class VerticalRuler extends Component {
       }
     }
 
-    // right corner
-    g.fillStyle = this.model.colors.strokeLight;
-    g.rect(bounds.width / 2, 0, 1, bounds.height);
-    g.rect(bounds.width - 1, 0, 1, bounds.height);
+    // right border
+    g.fillStyle = this.model.colors.strokeDark;
+    g.fillRect(bounds.width - 1, 0, 1, bounds.height);
   }
 
   private previewNoteAt(y: number): void {

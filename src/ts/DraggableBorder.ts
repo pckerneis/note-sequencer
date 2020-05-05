@@ -15,11 +15,11 @@ export class DraggableBorder extends Component {
   }
 
   public mousePressed(event: ComponentMouseEvent): void {
-    this.initialPosition = event.y;
+    this.initialPosition = event.position.y;
   }
 
   public mouseDragged(event: ComponentMouseEvent): void {
-    const newPosition = this.initialPosition + (event.y - event.positionAtMouseDown.y);
+    const newPosition = this.initialPosition + (event.position.y - event.positionAtMouseDown.y);
     this.owner.borderDragged(newPosition);
   }
 

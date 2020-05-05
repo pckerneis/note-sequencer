@@ -1,11 +1,10 @@
-import {Component, ComponentMouseEvent} from './BaseComponent';
+import {Component, ComponentMouseEvent, ComponentPosition} from './BaseComponent';
 import {SequencerDisplayModel} from './note-sequencer';
 import {NoteGridComponent} from './NoteGridComponent';
 
-export class HorizontalRuler extends Component {
+export class TimeRuler extends Component {
   private beingDragged: boolean = true;
-  private lastMouseX: number;
-  private lastMouseY: number;
+  private lastMousePosition: ComponentPosition;
 
   constructor(private readonly model: SequencerDisplayModel, private readonly grid: NoteGridComponent) {
     super();
@@ -14,8 +13,7 @@ export class HorizontalRuler extends Component {
 
   public mousePressed(event: ComponentMouseEvent): void {
     this.beingDragged = true;
-    this.lastMouseX = event.x;
-    this.lastMouseY = event.y;
+    this.lastMousePosition = event.position;
   }
 
   public doubleClicked(event: ComponentMouseEvent): void {
@@ -30,12 +28,11 @@ export class HorizontalRuler extends Component {
 
   public mouseDragged(event: ComponentMouseEvent): void {
     if (this.beingDragged) {
-      let xOffset = event.x - this.lastMouseX;
-      this.lastMouseX = event.x;
-      this.translate(-xOffset);
+      let xOffset = event.position.x - this.lastMousePosition.x;
+      let yOffset = event.position.y - this.lastMousePosition.y;
+      this.lastMousePosition = event.position;
 
-      let yOffset = event.y - this.lastMouseY;
-      this.lastMouseY = event.y;
+      this.translate(-xOffset);
 
       if (Math.abs(yOffset) >= 3) {
         if (yOffset > 0)
@@ -100,8 +97,8 @@ export class HorizontalRuler extends Component {
       }
     }
 
-    // Bottom corner
-    g.fillStyle = this.model.colors.strokeLight;
+    // Bottom border
+    g.fillStyle = this.model.colors.strokeDark;
     g.fillRect(0, bounds.height - 1, bounds.width, 1);
   }
 

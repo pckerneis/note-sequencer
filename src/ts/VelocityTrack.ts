@@ -40,8 +40,8 @@ export class VelocityTrack extends Component {
     const pos = this.getPosition();
 
     const local = {
-      x: event.x - pos.x,
-      y: event.y - pos.y,
+      x: event.position.x - pos.x,
+      y: event.position.y - pos.y,
     };
 
     this._draggingHandle = false;
@@ -152,7 +152,7 @@ export class VelocityTrack extends Component {
 
   private dragSelectedHandles(event: ComponentMouseEvent): void {
     let vScale = this.height / 128;
-    let dragOffset = event.y - event.positionAtMouseDown.y;
+    let dragOffset = event.position.y - event.positionAtMouseDown.y;
 
     let scaled = dragOffset / vScale;
 

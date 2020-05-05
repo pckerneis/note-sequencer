@@ -59,9 +59,8 @@ export class ComponentBounds implements IBounds {
 }
 
 export interface ComponentMouseEvent {
-  positionAtMouseDown: {x: number, y: number},
-  x: number,
-  y: number,
+  positionAtMouseDown: ComponentPosition,
+  position: ComponentPosition,
   originatingComp: Component,
   wasDragged: boolean,
   modifiers: {shift: boolean, option: boolean}
@@ -305,9 +304,8 @@ export class RootComponentHolder {
       wasDragged = false;
 
       component.mousePressed({
+        position: mouseDownPos,
         positionAtMouseDown: mouseDownPos,
-        x: mouseDownPos.x,
-        y: mouseDownPos.y,
         originatingComp: component,
         wasDragged,
         modifiers: {shift: event.shiftKey, option: event.ctrlKey},
@@ -323,9 +321,8 @@ export class RootComponentHolder {
           && squaredDistance(lastClickPos.x, lastClickPos.y, mouseDownPos.x, mouseDownPos.y)
               < CLICK_MAX_DISTANCE * CLICK_MAX_DISTANCE) {
         component.doublePressed({
+          position: mouseDownPos,
           positionAtMouseDown: mouseDownPos,
-          x: mouseDownPos.x,
-          y: mouseDownPos.y,
           originatingComp: component,
           wasDragged,
           modifiers: {shift: event.shiftKey, option: event.ctrlKey},
@@ -346,9 +343,8 @@ export class RootComponentHolder {
 
       if (pressedComponent != null) {
         pressedComponent.mouseReleased({
+          position: mouseUpPos,
           positionAtMouseDown: mouseDownPos,
-          x: mouseUpPos.x,
-          y: mouseUpPos.y,
           originatingComp: pressedComponent,
           wasDragged,
           modifiers: {shift: event.shiftKey, option: event.ctrlKey},
@@ -359,9 +355,8 @@ export class RootComponentHolder {
           lastClickPos = mouseUpPos;
 
           pressedComponent.clicked({
+            position: mouseUpPos,
             positionAtMouseDown: mouseDownPos,
-            x: mouseUpPos.x,
-            y: mouseUpPos.y,
             originatingComp: pressedComponent,
             wasDragged,
             modifiers: {shift: event.shiftKey, option: event.ctrlKey},
@@ -377,9 +372,8 @@ export class RootComponentHolder {
             && squaredDistance(lastClickPos.x, lastClickPos.y, mouseDownPos.x, mouseDownPos.y)
                 < CLICK_MAX_DISTANCE * CLICK_MAX_DISTANCE) {
             pressedComponent.doubleClicked({
+              position: mouseUpPos,
               positionAtMouseDown: mouseDownPos,
-              x: mouseUpPos.x,
-              y: mouseUpPos.y,
               originatingComp: pressedComponent,
               wasDragged,
               modifiers: {shift: event.shiftKey, option: event.ctrlKey},
@@ -410,8 +404,8 @@ export class RootComponentHolder {
         document.body.style.cursor = component.mouseCursor;
 
         component.mouseMoved({
+          position: { x, y },
           positionAtMouseDown: mouseDownPos,
-          x, y,
           originatingComp: component,
           wasDragged,
           modifiers: {shift: event.shiftKey, option: event.ctrlKey},
@@ -422,8 +416,8 @@ export class RootComponentHolder {
         document.body.style.cursor = pressedComponent.mouseCursor;
 
         pressedComponent.mouseDragged({
+          position: { x, y },
           positionAtMouseDown: mouseDownPos,
-          x, y,
           originatingComp: pressedComponent,
           wasDragged,
           modifiers: {shift: event.shiftKey, option: event.ctrlKey},

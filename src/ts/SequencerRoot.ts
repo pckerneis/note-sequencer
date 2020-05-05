@@ -1,32 +1,32 @@
 import {Component} from './BaseComponent';
 import {DraggableBorder, DraggableBorderOwner} from './DraggableBorder';
-import {HorizontalRuler} from './HorizontalRuler';
 import {SequencerDisplayModel} from './note-sequencer';
 import {NoteGridComponent} from './NoteGridComponent';
+import {PitchRuler} from './PitchRuler';
+import {TimeRuler} from './TimeRuler';
 import {VelocityRuler} from './VelocityRuler';
 import {VelocityTrack} from './VelocityTrack';
-import {VerticalRuler} from './VerticalRuler';
 
 export class SequencerRoot extends Component implements DraggableBorderOwner {
   private readonly _grid: NoteGridComponent;
-  private readonly _verticalRuler: VerticalRuler;
-  private readonly _horizontalRuler: HorizontalRuler;
+  private readonly _verticalRuler: PitchRuler;
+  private readonly _horizontalRuler: TimeRuler;
   private readonly _velocityRuler: VelocityRuler;
   private readonly _draggableBorder: DraggableBorder;
   private readonly _velocityTrack: VelocityTrack;
 
   private draggableBorderPosition: number;
 
-  constructor(model: SequencerDisplayModel) {
+  constructor(public readonly model: SequencerDisplayModel) {
     super();
 
     this._grid = new NoteGridComponent(model);
     this.addAndMakeVisible(this._grid);
 
-    this._verticalRuler = new VerticalRuler(model, this._grid);
+    this._verticalRuler = new PitchRuler(model, this._grid);
     this.addAndMakeVisible(this._verticalRuler);
 
-    this._horizontalRuler = new HorizontalRuler(model, this._grid);
+    this._horizontalRuler = new TimeRuler(model, this._grid);
     this.addAndMakeVisible(this._horizontalRuler);
 
     this._velocityRuler = new VelocityRuler(model);
@@ -69,7 +69,7 @@ export class SequencerRoot extends Component implements DraggableBorderOwner {
   }
 
   public render(g: CanvasRenderingContext2D): void {
-    g.fillStyle = '#eee';
+    g.fillStyle = this.model.colors.background;
     g.fillRect(0, 0, this.width, this.height);
   }
 

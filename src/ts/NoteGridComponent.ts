@@ -207,8 +207,8 @@ export class NoteGridComponent extends Component {
     const pos = this.getPosition();
 
     let local = {
-      x: event.x - pos.x,
-      y: event.y - pos.y,
+      x: event.position.x - pos.x,
+      y: event.position.y - pos.y,
     };
 
     let existingNote = this.findNoteAt(local);
@@ -218,8 +218,8 @@ export class NoteGridComponent extends Component {
       return;
     }
 
-    let t = this.snapToGrid (this.getTimeForScreenPos (event.x));
-    let p = Math.round (this.getPitchAt(event.y));
+    let t = this.snapToGrid (this.getTimeForScreenPos (event.position.x));
+    let p = Math.round (this.getPitchAt(event.position.y));
     let d = this.getLockRatio();
 
     let newNote: Note = {
@@ -254,8 +254,8 @@ export class NoteGridComponent extends Component {
     const pos = this.getPosition();
 
     let local = {
-      x: event.x - pos.x,
-      y: event.y - pos.y,
+      x: event.position.x - pos.x,
+      y: event.position.y - pos.y,
     };
 
     let existingNote = this.findNoteAt(local);
@@ -278,8 +278,8 @@ export class NoteGridComponent extends Component {
     const pos = this.getPosition();
 
     let local = {
-      x: event.x - pos.x,
-      y: event.y - pos.y,
+      x: event.position.x - pos.x,
+      y: event.position.y - pos.y,
     };
 
     let existingNote = this.findNoteAt(local);
@@ -374,8 +374,8 @@ export class NoteGridComponent extends Component {
     }
 
     let dragOffset = {
-      x: event.x - event.positionAtMouseDown.x,
-      y: event.y - event.positionAtMouseDown.y,
+      x: event.position.x - event.positionAtMouseDown.x,
+      y: event.position.y - event.positionAtMouseDown.y,
     };
 
     const scaledX = Math.max(this._minDragOffset.time,
@@ -509,7 +509,7 @@ export class NoteGridComponent extends Component {
       this._maxDurationOffset = this.model.maxTimeRange.max - selectionRight;
     }
 
-    let dragOffset = event.x - event.positionAtMouseDown.x;
+    let dragOffset = event.position.x - event.positionAtMouseDown.x;
     let scaledX = Math.min(this._maxDurationOffset, dragOffset / this.getSixteenthWidth());
 
     // Apply to itemDragged
@@ -562,7 +562,7 @@ export class NoteGridComponent extends Component {
       this._minStartOffset = -selectionLeft;
     }
 
-    let dragOffset = event.x - event.positionAtMouseDown.x;
+    let dragOffset = event.position.x - event.positionAtMouseDown.x;
     let scaledX = Math.max(this._minStartOffset, dragOffset / this.getSixteenthWidth());
     let currentEndPoint = this._draggedItem.time + this._draggedItem.duration;
 
@@ -602,7 +602,7 @@ export class NoteGridComponent extends Component {
       this._initialVelocity = this._draggedItem.velocity;
     }
 
-    let dragOffset = event.y - event.positionAtMouseDown.y;
+    let dragOffset = event.position.y - event.positionAtMouseDown.y;
 
     this._draggedItem.velocity = this._initialVelocity - dragOffset;
     this._draggedItem.velocity = Math.max (0, Math.min (this._draggedItem.velocity, 127));
