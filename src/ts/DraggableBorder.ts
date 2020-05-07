@@ -23,8 +23,18 @@ export class DraggableBorder extends Component {
     this.owner.borderDragged(newPosition);
   }
 
+  public mouseEnter(event: ComponentMouseEvent): void {
+    super.mouseEnter(event);
+    this.repaint();
+  }
+
+  public mouseExit(event: ComponentMouseEvent): void {
+    super.mouseExit(event);
+    this.repaint();
+  }
+
   protected render(g: CanvasRenderingContext2D): void {
-    g.fillStyle = this.model.colors.draggableBorder;
+    g.fillStyle = this.hovered ? this.model.colors.draggableBorderHover : this.model.colors.draggableBorder;
     g.fillRect (0, 0, this.width, this.height);
   }
 
