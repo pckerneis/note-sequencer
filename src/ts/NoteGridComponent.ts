@@ -238,9 +238,16 @@ export class NoteGridComponent extends Component {
     // this.onNoteAdded(newNote);
 
     this.getParentComponent().repaint();
+
+    this.mouseCursor = "w-resize";
   }
 
   public mouseMoved(event: ComponentMouseEvent): void {
+    super.mouseMoved(event);
+
+    if (event.isDragging)
+      return;
+
     const pos = this.getPosition();
 
     const local = {
@@ -250,17 +257,21 @@ export class NoteGridComponent extends Component {
 
     const existingNote = this.findNoteAt(local);
 
-    if (existingNote == null)
+    if (existingNote == null){
+      this.mouseCursor = "default";
       return;
+    }
 
     const action = this.getDragActionForNoteAt(local, existingNote);
 
     if (action == 'MOVE_NOTE') {
-      document.body.style.cursor = "move";
+      this.mouseCursor = "move";
     } else if (action == "LEFT") {
-      document.body.style.cursor = "w-resize";
+      this.mouseCursor = "w-resize";
     } else if (action == "RIGHT") {
-      document.body.style.cursor = "e-resize";
+      this.mouseCursor = "e-resize";
+    } else {
+      this.mouseCursor = "default";
     }
   }
 
@@ -288,6 +299,7 @@ export class NoteGridComponent extends Component {
 
     this._mouseDownResult = this._selectedSet.addToSelectionMouseDown(existingNote, event.modifiers.shift);
     this._dragAction = this.getDragActionForNoteAt (local, existingNote);
+    this.setMouseCursor(this._dragAction);
 
     this._draggedItem = existingNote;
     this.moveNoteToFront (existingNote);
@@ -295,6 +307,8 @@ export class NoteGridComponent extends Component {
 
   public mouseReleased(event: ComponentMouseEvent): void {
     this._dragAction = 'NONE';
+    this.setMouseCursor(this._dragAction);
+
     this._initialPosition = null;
     this._initialDuration = null;
     this._initialStart = null;
@@ -303,8 +317,8 @@ export class NoteGridComponent extends Component {
     this._lasso.endLasso();
 
     // in case a drag would have caused negative durations
-    for (const s of this._selectedSet.getItems()) {
-      s.duration = Math.max (0, s.duration);
+    for (const selected of this._selectedSet.getItems()) {
+      selected.duration = Math.max (0, selected.duration);
     }
 
     this._selectedSet.addToSelectionMouseUp(event.wasDragged, event.modifiers.shift, this._mouseDownResult);
@@ -316,6 +330,7 @@ export class NoteGridComponent extends Component {
     });
 
     this._draggedItem = null;
+
   }
 
   public mouseDragged(event: ComponentMouseEvent): void {
@@ -751,5 +766,21 @@ export class NoteGridComponent extends Component {
     }
 
     return time * this.getSixteenthWidth();
+  }
+
+  private setMouseCursor(action: DragAction): void {
+    switch (action) {
+      case "MOVE_NOTE":
+        this.mouseCursor = 'move';
+        break;
+      case "LEFT":
+        this.mouseCursor = 'w-resize';
+        break;
+      case "RIGHT":
+        this.mouseCursor = 'e-resize';
+        break;
+      default:
+        this.mouseCursor = 'default';
+    }
   }
 }

@@ -68,7 +68,6 @@ export interface ComponentMouseEvent {
 }
 
 export abstract class Component {
-  public mouseCursor: string;
 
   private _children: Component[] = [];
   private _parent: Component = null;
@@ -76,6 +75,8 @@ export abstract class Component {
   private _needRepaint: boolean = true;
   private _rootHolder: RootComponentHolder;
   private _hovered: boolean;
+  private _mouseCursor: string;
+  private _beingDragged: boolean;
 
   protected constructor(private _bounds: ComponentBounds = new ComponentBounds()) {
   }
@@ -90,6 +91,18 @@ export abstract class Component {
     canvas.width = width;
     canvas.height = height;
     return canvas;
+  }
+
+  public get mouseCursor(): string {
+    return this._mouseCursor;
+  }
+
+  public set mouseCursor(cursor: string) {
+    this._mouseCursor = cursor;
+
+    if (this.hovered || this._beingDragged) {
+      document.body.style.cursor = this._mouseCursor;
+    }
   }
 
   public get hovered(): boolean {
@@ -232,6 +245,7 @@ export abstract class Component {
 
   // These functions should be overridden by sub comps
   public mouseMoved(event: ComponentMouseEvent): void {
+    this._beingDragged = event.isDragging && event.pressedComponent === this;
   }
 
   public mouseEnter(event: ComponentMouseEvent): void {
@@ -429,9 +443,9 @@ export class RootComponentHolder {
       }
 
       hit(mouseEvent, (component) => {
-        if (componentUnderMouse != null && componentUnderMouse != component) {
-          document.body.style.cursor = 'default';
+        document.body.style.cursor = component.mouseCursor || 'default';
 
+        if (componentUnderMouse != null && componentUnderMouse != component) {
           const event: ComponentMouseEvent = {
             position: {x, y},
             positionAtMouseDown: mouseDownPos,
