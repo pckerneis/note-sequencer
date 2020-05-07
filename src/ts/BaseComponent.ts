@@ -59,9 +59,10 @@ export class ComponentBounds implements IBounds {
 }
 
 export interface ComponentMouseEvent {
+  isDragging: boolean;
   positionAtMouseDown: ComponentPosition,
   position: ComponentPosition,
-  originatingComp: Component,
+  pressedComponent: Component,
   wasDragged: boolean,
   modifiers: {shift: boolean, option: boolean}
 }
@@ -74,6 +75,7 @@ export abstract class Component {
   private _visible: boolean = true;
   private _needRepaint: boolean = true;
   private _rootHolder: RootComponentHolder;
+  private _hovered: boolean;
 
   protected constructor(private _bounds: ComponentBounds = new ComponentBounds()) {
   }
@@ -88,6 +90,10 @@ export abstract class Component {
     canvas.width = width;
     canvas.height = height;
     return canvas;
+  }
+
+  public get hovered(): boolean {
+    return this._hovered;
   }
 
   public get width(): number {
@@ -228,6 +234,27 @@ export abstract class Component {
   public mouseMoved(event: ComponentMouseEvent): void {
   }
 
+  public mouseEnter(event: ComponentMouseEvent): void {
+    if (event.isDragging) {
+      this._hovered = event.pressedComponent === this;
+    } else {
+      this._hovered = true;
+    }
+
+    if (this._hovered) {
+      document.body.style.cursor = this.mouseCursor;
+    }
+  }
+
+  public mouseExit(event: ComponentMouseEvent): void {
+    if (event.isDragging) {
+      this._hovered = event.pressedComponent === this;
+    } else {
+      this._hovered = false;
+    }
+    console.log('exit', this.hovered);
+  }
+
   public mousePressed(event: ComponentMouseEvent): void {
   }
 
@@ -249,6 +276,7 @@ export abstract class Component {
   protected abstract resized(): void;
 
   protected abstract render(g: CanvasRenderingContext2D): void;
+
 }
 
 const CLICK_MAX_DISTANCE_SQUARED = 30;
@@ -267,6 +295,7 @@ export class RootComponentHolder {
     this.canvas.height = height;
 
     let pressedComponent: Component = null;
+    let componentUnderMouse: Component = null;
     let mouseDownPos: ComponentPosition;
     let mouseUpPos: ComponentPosition;
     let mouseDownTime: number;
@@ -276,6 +305,8 @@ export class RootComponentHolder {
     let lastClickTime: number;
     let lastClickPos: ComponentPosition;
     let wasDragged: boolean = false;
+    let isDragging: boolean = false;
+
 
     const mousePositionRelativeToCanvas = (event: MouseEvent) => {
       const canvasBounds = this.canvas.getBoundingClientRect();
@@ -293,18 +324,20 @@ export class RootComponentHolder {
       }
     };
 
-    this.canvas.addEventListener('mousedown', (event) => hit(event, (component) => {
+    this.canvas.addEventListener('mousedown', (mouseEvent) => hit(mouseEvent, (component) => {
       pressedComponent = component;
-      mouseDownPos = mousePositionRelativeToCanvas(event);
+      mouseDownPos = mousePositionRelativeToCanvas(mouseEvent);
       mouseDownTime = performance.now();
       wasDragged = false;
+      isDragging = true;
 
       component.mousePressed({
         position: mouseDownPos,
         positionAtMouseDown: mouseDownPos,
-        originatingComp: component,
+        pressedComponent: component,
         wasDragged,
-        modifiers: {shift: event.shiftKey, option: event.ctrlKey},
+        modifiers: extractModifiers(mouseEvent),
+        isDragging,
       });
 
       if (lastClickPos == null
@@ -320,26 +353,28 @@ export class RootComponentHolder {
         component.doublePressed({
           position: mouseDownPos,
           positionAtMouseDown: mouseDownPos,
-          originatingComp: component,
+          pressedComponent: component,
           wasDragged,
-          modifiers: {shift: event.shiftKey, option: event.ctrlKey},
+          modifiers: extractModifiers(mouseEvent),
+          isDragging,
         });
 
         consecutivePressCount = 0;
       }
     }));
 
-    document.addEventListener('mouseup', (event: MouseEvent) => {
-      mouseUpPos = mousePositionRelativeToCanvas(event);
+    document.addEventListener('mouseup', (mouseEvent: MouseEvent) => {
+      mouseUpPos = mousePositionRelativeToCanvas(mouseEvent);
       mouseUpTime = performance.now();
 
       if (pressedComponent != null) {
         pressedComponent.mouseReleased({
           position: mouseUpPos,
           positionAtMouseDown: mouseDownPos,
-          originatingComp: pressedComponent,
+          pressedComponent,
           wasDragged,
-          modifiers: {shift: event.shiftKey, option: event.ctrlKey},
+          modifiers: extractModifiers(mouseEvent),
+          isDragging,
         });
 
         if (mouseUpTime < mouseDownTime + CLICK_INTERVAL
@@ -349,9 +384,10 @@ export class RootComponentHolder {
           pressedComponent.clicked({
             position: mouseUpPos,
             positionAtMouseDown: mouseDownPos,
-            originatingComp: pressedComponent,
+            pressedComponent,
             wasDragged,
-            modifiers: {shift: event.shiftKey, option: event.ctrlKey},
+            modifiers: extractModifiers(mouseEvent),
+            isDragging,
           });
 
           if (lastClickTime == null || mouseUpTime > lastClickTime + DOUBLE_CLICK_INTERVAL) {
@@ -365,9 +401,10 @@ export class RootComponentHolder {
             pressedComponent.doubleClicked({
               position: mouseUpPos,
               positionAtMouseDown: mouseDownPos,
-              originatingComp: pressedComponent,
+              pressedComponent,
               wasDragged,
-              modifiers: {shift: event.shiftKey, option: event.ctrlKey},
+              modifiers: extractModifiers(mouseEvent),
+              isDragging,
             });
 
             consecutiveClickCount = 0;
@@ -379,12 +416,11 @@ export class RootComponentHolder {
       }
 
       wasDragged = false;
+      isDragging = false;
     });
 
-    document.addEventListener('mousemove', (event: MouseEvent) => {
-      document.body.style.cursor = 'default';
-
-      const {x, y} = mousePositionRelativeToCanvas(event);
+    document.addEventListener('mousemove', (mouseEvent: MouseEvent) => {
+      const {x, y} = mousePositionRelativeToCanvas(mouseEvent);
 
       if (! wasDragged
           && mouseDownPos != null
@@ -392,27 +428,45 @@ export class RootComponentHolder {
         wasDragged = true;
       }
 
-      hit(event, (component) => {
-        document.body.style.cursor = component.mouseCursor;
+      hit(mouseEvent, (component) => {
+        if (componentUnderMouse != null && componentUnderMouse != component) {
+          document.body.style.cursor = 'default';
+
+          const event: ComponentMouseEvent = {
+            position: {x, y},
+            positionAtMouseDown: mouseDownPos,
+            wasDragged,
+            modifiers: extractModifiers(mouseEvent),
+            pressedComponent,
+            isDragging,
+          };
+
+          componentUnderMouse.mouseExit({...event});
+          component.mouseEnter({...event});
+        }
+
+        componentUnderMouse = component;
 
         component.mouseMoved({
           position: { x, y },
           positionAtMouseDown: mouseDownPos,
-          originatingComp: component,
+          pressedComponent: component,
           wasDragged,
-          modifiers: {shift: event.shiftKey, option: event.ctrlKey},
+          modifiers: extractModifiers(mouseEvent),
+          isDragging,
         });
       });
 
-      if (event.buttons > 0 && pressedComponent != null) {
+      if (mouseEvent.buttons > 0 && pressedComponent != null) {
         document.body.style.cursor = pressedComponent.mouseCursor;
 
         pressedComponent.mouseDragged({
           position: { x, y },
           positionAtMouseDown: mouseDownPos,
-          originatingComp: pressedComponent,
+          pressedComponent,
           wasDragged,
-          modifiers: {shift: event.shiftKey, option: event.ctrlKey},
+          modifiers: extractModifiers(mouseEvent),
+          isDragging,
         });
       }
     });
@@ -428,5 +482,12 @@ export class RootComponentHolder {
     this.canvas.height = height;
 
     this.rootComponent.setBounds(new ComponentBounds(0, 0, width, height));
+  }
+}
+
+function extractModifiers(mouseEvent: MouseEvent): {shift: boolean, option: boolean} {
+  return {
+    shift: mouseEvent.shiftKey,
+    option: mouseEvent.ctrlKey,
   }
 }
