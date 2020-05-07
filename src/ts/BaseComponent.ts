@@ -415,8 +415,6 @@ export class RootComponentHolder {
           modifiers: {shift: event.shiftKey, option: event.ctrlKey},
         });
       }
-
-      this.render();
     });
   }
 
@@ -430,7 +428,5 @@ export class RootComponentHolder {
     this.canvas.height = height;
 
     this.rootComponent.setBounds(new ComponentBounds(0, 0, width, height));
-
-    this.render();
   }
 }
