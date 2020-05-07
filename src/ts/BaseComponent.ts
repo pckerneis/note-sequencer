@@ -118,7 +118,7 @@ export abstract class Component {
   }
 
   public removeChild(childComp: Component): void {
-    let idx = this._children.indexOf(childComp);
+    const idx = this._children.indexOf(childComp);
 
     if (idx >= 0) {
       childComp._visible = false;
@@ -155,7 +155,7 @@ export abstract class Component {
       return;
     }
 
-    let idx = this._parent._children.indexOf(this);
+    const idx = this._parent._children.indexOf(this);
 
     if (idx < 0)
       return;
@@ -168,7 +168,7 @@ export abstract class Component {
     if (!this._visible)
       return false;
 
-    let pos = this.getPosition();
+    const pos = this.getPosition();
 
     if (mousePosition.x < pos.x || mousePosition.x > pos.x + this._bounds.width) {
       return false;
@@ -179,7 +179,7 @@ export abstract class Component {
 
   public findComponentAt(position: ComponentPosition): Component {
     for (let i = this._children.length; --i >= 0;) {
-      let c = this._children[i];
+      const c = this._children[i];
 
       if (c.hitTest(position)) {
         return c.findComponentAt(position);
@@ -193,9 +193,7 @@ export abstract class Component {
     this._needRepaint = true;
 
     // Mark all children so that they will repaint
-    for (let c of this._children) {
-      c.repaint(false);
-    }
+    this._children.forEach(child => child.repaint(false));
 
     if (isOriginalRepaintTarget) {
       // Find root component
@@ -214,16 +212,14 @@ export abstract class Component {
 
   public paint(context: CanvasRenderingContext2D): void {
     if (this._visible && this._needRepaint && Math.floor(this._bounds.width) > 0 && Math.floor(this._bounds.height) > 0) {
-      let g = Component.createOffscreenCanvas(Math.ceil(this._bounds.width), Math.ceil(this._bounds.height));
+      const g = Component.createOffscreenCanvas(Math.ceil(this._bounds.width), Math.ceil(this._bounds.height));
 
       this.render(g.getContext('2d'));
 
       context.drawImage(g, Math.floor(this._bounds.x), Math.floor(this._bounds.y));
     }
 
-    for (let c of this._children) {
-      c.paint(context);
-    }
+    this._children.forEach(child => child.paint(context));
 
     this._needRepaint = false;
   }

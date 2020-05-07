@@ -52,7 +52,7 @@ export class LassoSelector<T extends SelectableItem> {
     this.lasso.endX = event.position.x - ownerPos.x;
     this.lasso.endY = event.position.y - ownerPos.y;
 
-    let lassoBounds: IBounds = {
+    const lassoBounds: IBounds = {
       x: Math.min(this.lasso.startX, this.lasso.endX),
       y: Math.min(this.lasso.startY, this.lasso.endY),
       width: Math.abs(this.lasso.startX - this.lasso.endX),

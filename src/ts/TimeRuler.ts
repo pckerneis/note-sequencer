@@ -80,8 +80,8 @@ export class TimeRuler extends Component {
       return;
     }
 
-    let minLabelSpacing = 50;
-    let minGraduationSpacing = 5;
+    const minLabelSpacing = 50;
+    const minGraduationSpacing = 5;
 
     let ratio = 1;
 
@@ -99,12 +99,12 @@ export class TimeRuler extends Component {
     }
 
     for (let i = 0; i < Math.ceil(end); i += incr) {
-      let x = (i - start) * sixteenth;
+      const x = (i - start) * sixteenth;
 
       if (x < 0)
         continue;
 
-      let gradH = i % (incr * 4) == 0 ? 0.4 : 0.12;
+      const gradH = i % (incr * 4) == 0 ? 0.4 : 0.12;
 
       g.fillStyle = this.model.colors.strokeLight;
       g.fillRect(x, bounds.height * (1 - gradH), 1, bounds.height * gradH);

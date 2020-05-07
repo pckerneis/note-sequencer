@@ -38,8 +38,8 @@ export class PitchRuler extends Component {
     const pos = this.getPosition();
 
     if (this.dragStarted) {
-      let yOffset = event.position.y - this.lastMouseY;
-      let xOffset = event.position.x - this.lastMouseX;
+      const yOffset = event.position.y - this.lastMouseY;
+      const xOffset = event.position.x - this.lastMouseX;
 
       this.lastMouseY = event.position.y;
       this.lastMouseX = event.position.x;
@@ -88,16 +88,16 @@ export class PitchRuler extends Component {
     g.fillStyle = this.model.colors.background;
     g.fillRect(0, 0, this.width, this.height);
 
-    let vMin = this.model.verticalRange.start;
-    let vMax = this.model.verticalRange.end;
-    let semiHeight = this.grid.getSemitoneHeight();
+    const start = this.model.verticalRange.start;
+    const end = this.model.verticalRange.end;
+    const semiHeight = this.grid.getSemitoneHeight();
 
     // piano roll
     if (this.isPianoRollVisible()) {
-      for (let i = Math.floor(vMin); i <= Math.ceil(vMax); ++i) {
-        let y = bounds.height - (i - vMin) * semiHeight;
-        let pitchClass = i % 12;
-        let isBlack = PITCH_PATTERN[pitchClass];
+      for (let i = Math.floor(start); i <= Math.ceil(end); ++i) {
+        const y = bounds.height - (i - start) * semiHeight;
+        const pitchClass = i % 12;
+        const isBlack = PITCH_PATTERN[pitchClass];
 
         g.fillStyle = isBlack ?
           g.fillStyle = this.model.colors.blackKey :
@@ -119,9 +119,9 @@ export class PitchRuler extends Component {
 
     // Octave labels
     for (let i = 0; i < 128; i += 12) {
-      if (i >= vMin && i <= vMax) {
-        let y = bounds.height - (i - vMin) * semiHeight;
-        let txt = 'C' + ((i / 12) - 2);
+      if (i >= start && i <= end) {
+        const y = bounds.height - (i - start) * semiHeight;
+        const txt = 'C' + ((i / 12) - 2);
 
         g.fillStyle = this.model.colors.text;
         g.fillText(txt, 2, y - 3, bounds.width / 2);
@@ -164,9 +164,9 @@ export class PitchRuler extends Component {
   }
 
   private zoomOut(): void {
-    const vMin = this.model.verticalRange.start;
-    const vMax = this.model.verticalRange.end;
-    const range = vMax - vMin;
+    const start = this.model.verticalRange.start;
+    const end = this.model.verticalRange.end;
+    const range = end - start;
     const zoomAmount = range / this.model.zoomSensitivity;
 
     this.model.verticalRange.start -= zoomAmount;
@@ -179,12 +179,12 @@ export class PitchRuler extends Component {
   }
 
   private translate(amount: number): void {
-    const vMin = this.model.verticalRange.start;
-    const vMax = this.model.verticalRange.end;
+    const start = this.model.verticalRange.start;
+    const end = this.model.verticalRange.end;
     const semiHeight = this.grid.getSemitoneHeight();
 
     if (amount < 0) {
-      const desiredMin = vMin + amount / semiHeight;
+      const desiredMin = start + amount / semiHeight;
       const clipped = Math.max(desiredMin, MIN_PITCH);
       const correctAmount = (clipped - desiredMin) + (amount / semiHeight);
 
@@ -193,7 +193,7 @@ export class PitchRuler extends Component {
 
       this.getParentComponent().repaint();
     } else if (amount > 0) {
-      const desiredMax = vMax + amount / semiHeight;
+      const desiredMax = end + amount / semiHeight;
       const clipped = Math.min(desiredMax, MAX_PITCH);
       const correctAmount = (clipped - desiredMax) + (amount / semiHeight);
 

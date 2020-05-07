@@ -27,11 +27,11 @@ export function getBackgroundAlternateWidth(sixteenth: number, signature: TimeSi
 }
 
 export function drawTimeBackground(g: CanvasRenderingContext2D, height: number, sixteenth: number,
-     incr: number, vMin: number, vMax: number, signature: TimeSignature, colors: Colors): void {
+     incr: number, start: number, end: number, signature: TimeSignature, colors: Colors): void {
   const alternateBackgroundWidth = getBackgroundAlternateWidth(sixteenth, signature);
 
-  for (let i = 0; i < Math.ceil(vMax); i += incr) {
-    let x = (i - vMin) * sixteenth;
+  for (let i = 0; i < Math.ceil(end); i += incr) {
+    const x = (i - start) * sixteenth;
 
     g.fillStyle = colors.backgroundAlternate;
 

@@ -6,9 +6,8 @@ export class SelectedItemSet<T extends SelectableItem> {
 
   private _selection: T[] = [];
   private _itemAboutToBeSelected: T = null;
-  
-  public onchange: Function = () => {};
 
+  public onchange: Function = () => {};
 
   public getItems(): T[] { return this._selection; }
 
@@ -22,90 +21,64 @@ export class SelectedItemSet<T extends SelectableItem> {
   }
 
   public addToSelectionMouseDown(item: T, isShiftKeyDown: boolean): boolean {
-    let itemAboutToBeSelected = item;
-
-    let itemIsSelected = false;
-
-    for (let s of this._selection) {
-      if (s == itemAboutToBeSelected) {
-        itemIsSelected = true;
-        break;
+    if (this._selection.includes(item)) {
+      // The item is already selected
+      if (isShiftKeyDown) {
+        this.removeFromSelection (item);
+        return true;
       }
-    }
 
-    if (! itemIsSelected) {
+      return false;
+
+    } else {
       if (! isShiftKeyDown) {
         this.deselectAll();
       }
 
-      this._selection.push (itemAboutToBeSelected);
-      itemAboutToBeSelected.selected = true;
-      this.onchange();
-
+      this.doAddToSelection(item, true);
       return true;
     }
-
-    // The item is already selected
-    if (isShiftKeyDown) {
-      this.removeFromSelection (itemAboutToBeSelected);
-
-      return true;
-    }
-
-    return false;
   }
 
   public addToSelectionMouseUp(wasMouseDragged: boolean, isShiftKeyDown: boolean, actionConsumedOnMouseDown: boolean): void {
-    if (this._itemAboutToBeSelected == null) {
-      return;
-    }
-
-    let itemIsSelected = false;
-
-    for (let s of this._selection) {
-      if (s === this._itemAboutToBeSelected) {
-        itemIsSelected = true;
-        break;
-      }
-    }
-
-    if (wasMouseDragged || actionConsumedOnMouseDown)
+    if (this._itemAboutToBeSelected == null
+      || wasMouseDragged
+      || actionConsumedOnMouseDown
+      || this._selection.includes(this._itemAboutToBeSelected))
       return;
 
     if (! isShiftKeyDown) {
       this.deselectAll();
     }
 
-    this._selection.push (this._itemAboutToBeSelected);
-    this._itemAboutToBeSelected.selected = true;
-    this.onchange();
+    this.doAddToSelection(this._itemAboutToBeSelected, true);
 
     this._itemAboutToBeSelected = null;
   }
 
   public setUniqueSelection(item: T): void {
     this.deselectAll();
-    this._selection.push(item);
-    item.selected = true;
+    this.doAddToSelection(item, true);
   }
 
-  // TODO: good be better
   public removeFromSelection(item: T): void {
-    for (let i = this._selection.length; --i >= 0;) {
-      if (this._selection[i] === item) {
-        item.selected = false;
-        this._selection.splice (i, 1);
-        this.onchange();
-        break;
-      }
-    }
+    this._selection.filter((selected) => selected !== item);
+    item.selected = false;
+    this.onchange();
   }
 
   public deselectAll(): void {
-    for (let s of this._selection)
-      s.selected = false;
-
+    this._selection.forEach(item => item.selected = false);
     this._selection = [];
     this.onchange();
+  }
+
+  private doAddToSelection(item: T, notify: boolean): void {
+    this._selection.push (item);
+    item.selected = true;
+
+    if (notify) {
+      this.onchange();
+    }
   }
 }

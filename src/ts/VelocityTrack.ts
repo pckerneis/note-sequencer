@@ -1,6 +1,6 @@
 import {Component, ComponentMouseEvent, ComponentPosition} from './BaseComponent';
 import {LassoSelector} from './LassoSelector';
-import {SequencerDisplayModel} from './note-sequencer';
+import {MAX_PITCH, SequencerDisplayModel} from './note-sequencer';
 import {Note, NoteGridComponent} from './NoteGridComponent';
 import {drawTimeBackground, squaredDistance} from './RenderHelpers';
 
@@ -20,7 +20,7 @@ export class VelocityTrack extends Component {
     this.lasso = new LassoSelector<Note>(this, this.grid.selectedSet, this.model.colors);
 
     this.lasso.findAllElementsInLasso = (lassoBounds) => {
-      const vScale = this.height / 128;
+      const vScale = this.height / MAX_PITCH;
 
       return this.grid.notes.filter((note) => {
 
@@ -90,6 +90,10 @@ export class VelocityTrack extends Component {
 
     this.grid.selectedSet.addToSelectionMouseUp(event.wasDragged, event.modifiers.shift, this._mouseDownResult);
 
+    this.grid.notes.forEach((note) => {
+      note.initialVelocity = note.velocity;
+    });
+
     this.getParentComponent().repaint();
   }
 
@@ -99,9 +103,9 @@ export class VelocityTrack extends Component {
     g.fillRect(0, 0, this.width, this.height);
 
     // Horizontal
-    let start = this.model.visibleTimeRange.start;
-    let end = this.model.visibleTimeRange.end;
-    let sixteenth = this.grid.getSixteenthWidth();
+    const start = this.model.visibleTimeRange.start;
+    const end = this.model.visibleTimeRange.end;
+    const sixteenth = this.grid.getSixteenthWidth();
 
     this.drawHorizontalBackground(g, sixteenth, start, end);
 
@@ -114,27 +118,31 @@ export class VelocityTrack extends Component {
   }
 
   private drawHorizontalBackground(g: CanvasRenderingContext2D, sixteenth: number,
-                                   vMin: number, vMax: number): void {
-    let incr = this.grid.getLockRatio();
+                                   start: number, end: number): void {
+    const incr = this.grid.getTimeIncrement();
 
     if (incr <= 0) {
       return;
     }
 
-    drawTimeBackground(g, this.height, sixteenth, incr, vMin, vMax, this.model.signature, this.model.colors);
+    drawTimeBackground(g, this.height, sixteenth, incr, start, end, this.model.signature, this.model.colors);
   }
 
   private drawVelocityHandles(g: CanvasRenderingContext2D): void {
-    let vScale = this.height / 127;
+    const vScale = this.height / MAX_PITCH;
 
-    for (let n of this.grid.notes) {
+    for (const n of this.grid.notes) {
+      if (n.hidden) {
+        continue;
+      }
+
       const x = this.grid.getPositionForTime(n.time);
 
       if (x < -5 || x > this.width + 5)
         continue;
 
-      let h = n.velocity * vScale;
-      let y = (this.height - h);
+      const h = n.velocity * vScale;
+      const y = (this.height - h);
 
       const color = n.selected ? this.model.colors.velocityHandleSelected : this.model.colors.velocityHandle;
       g.fillStyle = color;
@@ -151,30 +159,28 @@ export class VelocityTrack extends Component {
   }
 
   private dragSelectedHandles(event: ComponentMouseEvent): void {
-    let vScale = this.height / 128;
-    let dragOffset = event.position.y - event.positionAtMouseDown.y;
+    const vScale = this.height / MAX_PITCH;
+    const dragOffset = event.position.y - event.positionAtMouseDown.y;
 
-    let scaled = dragOffset / vScale;
+    const scaled = dragOffset / vScale;
 
-    for (let s of this.grid.selectedSet.getItems()) {
-      s.velocity = s.initialVelocity - scaled;
-      s.velocity = Math.min(127, Math.max(1, s.velocity));
+    for (const selected of this.grid.selectedSet.getItems()) {
+      selected.velocity = selected.initialVelocity - scaled;
+      selected.velocity = Math.min(MAX_PITCH, Math.max(1, selected.velocity));
     }
   }
 
   private findHandleAt(pos: ComponentPosition): Note {
-    let vScale = this.height / 128;
+    let vScale = this.height / MAX_PITCH;
+    const squaredHitDistance = 64;
 
     // We need to iterate from end to start to have front most notes first
-    for (let i = this.grid.notes.length; --i >= 0;) {
-      let n = this.grid.notes[i];
-      let nx = this.grid.getPositionForTime(n.time);
-      let nh = n.velocity * vScale;
-      let ny = this.height - nh;
-      let nr = 8;
+    for (const note of this.grid.notes) {
+      const x = this.grid.getPositionForTime(note.time);
+      const y = this.height - note.velocity * vScale;
 
-      if (squaredDistance(pos.x, pos.y, nx, ny) < nr * nr)
-        return n;
+      if (squaredDistance(pos.x, pos.y, x, y) < squaredHitDistance)
+        return note;
     }
 
     return null;

@@ -6,6 +6,7 @@ export const MAX_SEMI_H: number = 30;
 export const PITCH_PATTERN: number[] = [0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0];
 export const MIN_PITCH: number = 0;
 export const MAX_PITCH: number = 127;
+export const MAX_VELOCITY: number = 127;
 
 declare class ResizeObserver {
   constructor(...args: any[]);

@@ -14,6 +14,8 @@ export class VelocityRuler extends Component {
     const largeGradW = 10;
     const smallGradW = 10;
 
+
+
     // Ruler border
     g.fillStyle = this.model.colors.strokeDark;
     g.fillRect (this.width - 1, 0, 1, this.height);
@@ -22,7 +24,7 @@ export class VelocityRuler extends Component {
     g.fillStyle = this.model.colors.strokeDark;
     g.fillRect(this.width - largeGradW, 0, largeGradW, 1);
     g.fillStyle = this.model.colors.text;
-    g.fillText("127", this.width - 30, 12);
+    g.fillText("100%", this.width - 30, 12);
 
     // Mid grad
     g.fillStyle = this.model.colors.strokeDark;
@@ -32,7 +34,7 @@ export class VelocityRuler extends Component {
     g.fillRect(this.width - largeGradW, this.height - 1, largeGradW, 1);
 
     g.fillStyle = this.model.colors.text;
-    g.fillText("1", this.width - 20, this.height - 2);
+    g.fillText("0", this.width - 20, this.height - 2);
   }
 
   protected resized(): void {
