@@ -251,7 +251,7 @@ export abstract class Component {
   protected abstract render(g: CanvasRenderingContext2D): void;
 }
 
-const CLICK_MAX_DISTANCE = 5;
+const CLICK_MAX_DISTANCE_SQUARED = 30;
 const CLICK_INTERVAL = 200;
 const DOUBLE_CLICK_INTERVAL = 500;
 const DOUBLE_PRESS_INTERVAL = 400;
@@ -307,15 +307,16 @@ export class RootComponentHolder {
         modifiers: {shift: event.shiftKey, option: event.ctrlKey},
       });
 
-      if (lastClickTime == null || mouseDownTime > lastClickTime + DOUBLE_PRESS_INTERVAL) {
+      if (lastClickPos == null
+        || lastClickTime == null
+        || mouseDownTime > lastClickTime + DOUBLE_PRESS_INTERVAL
+        || squaredDistance(lastClickPos.x, lastClickPos.y, mouseDownPos.x, mouseDownPos.y) > CLICK_MAX_DISTANCE_SQUARED) {
         consecutivePressCount = 1;
       } else {
         consecutivePressCount++;
       }
 
-      if (consecutivePressCount == 2
-          && squaredDistance(lastClickPos.x, lastClickPos.y, mouseDownPos.x, mouseDownPos.y)
-              < CLICK_MAX_DISTANCE * CLICK_MAX_DISTANCE) {
+      if (consecutivePressCount == 2) {
         component.doublePressed({
           position: mouseDownPos,
           positionAtMouseDown: mouseDownPos,
@@ -331,11 +332,6 @@ export class RootComponentHolder {
     document.addEventListener('mouseup', (event: MouseEvent) => {
       mouseUpPos = mousePositionRelativeToCanvas(event);
       mouseUpTime = performance.now();
-
-      if (mouseDownPos != null) {
-        wasDragged = squaredDistance(mouseDownPos.x, mouseDownPos.y, mouseUpPos.x, mouseUpPos.y)
-          > CLICK_MAX_DISTANCE * CLICK_MAX_DISTANCE;
-      }
 
       if (pressedComponent != null) {
         pressedComponent.mouseReleased({
@@ -365,8 +361,7 @@ export class RootComponentHolder {
           }
 
           if (consecutiveClickCount == 2
-            && squaredDistance(lastClickPos.x, lastClickPos.y, mouseDownPos.x, mouseDownPos.y)
-                < CLICK_MAX_DISTANCE * CLICK_MAX_DISTANCE) {
+            && ! wasDragged) {
             pressedComponent.doubleClicked({
               position: mouseUpPos,
               positionAtMouseDown: mouseDownPos,
@@ -391,9 +386,10 @@ export class RootComponentHolder {
 
       const {x, y} = mousePositionRelativeToCanvas(event);
 
-      if (mouseDownPos != null) {
-        wasDragged = squaredDistance(mouseDownPos.x, mouseDownPos.y, x, y)
-          > CLICK_MAX_DISTANCE * CLICK_MAX_DISTANCE;
+      if (! wasDragged
+          && mouseDownPos != null
+          && squaredDistance(mouseDownPos.x, mouseDownPos.y, x, y) > CLICK_MAX_DISTANCE_SQUARED) {
+        wasDragged = true;
       }
 
       hit(event, (component) => {
