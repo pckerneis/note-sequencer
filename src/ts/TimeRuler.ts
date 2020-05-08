@@ -6,6 +6,7 @@ import {clamp} from './utils';
 export class TimeRuler extends Component {
   private timeAtMouseDown: number;
   private rangeAtMouseDown: Range;
+  private zoomAtMouseDown: number;
 
   constructor(private readonly model: SequencerDisplayModel, private readonly grid: NoteGridComponent) {
     super();
@@ -14,6 +15,8 @@ export class TimeRuler extends Component {
   public mousePressed(event: ComponentMouseEvent): void {
     this.timeAtMouseDown = this.grid.getTimeAt(event.position.x);
     this.rangeAtMouseDown = {...this.model.visibleTimeRange};
+    this.zoomAtMouseDown = (this.model.maxTimeRange.end - this.model.maxTimeRange.start) /
+      (this.model.visibleTimeRange.end - this.model.visibleTimeRange.start);
   }
 
   public doubleClicked(event: ComponentMouseEvent): void {
@@ -23,17 +26,14 @@ export class TimeRuler extends Component {
   }
 
   public mouseDragged(event: ComponentMouseEvent): void {
-    const dragSensitivity = 0.005;
+    const dragSensitivity = -0.0015;
     const minimalRange = 1;
 
-    // Compute the zoom factor
-    const dragOffset = event.position.y - event.positionAtMouseDown.y;
-    const zoomFactor = 1 + (dragOffset * dragSensitivity);
+    const dragOffset = event.positionAtMouseDown.y - event.position.y;
+    const toAdd = (this.model.maxTimeRange.end - this.model.maxTimeRange.start) * dragOffset * dragSensitivity;
+    const amountToAdd = toAdd / 2;
 
-    // Apply this factor to the current range
-    const originalRange = this.rangeAtMouseDown.end - this.rangeAtMouseDown.start;
-    const newRange = originalRange * zoomFactor;
-    const amountToAdd = (newRange - originalRange) / 2;
+    console.log(dragOffset, '->', toAdd);
 
     let newStart = this.rangeAtMouseDown.start + amountToAdd;
     let newEnd = this.rangeAtMouseDown.end - amountToAdd;
