@@ -1,6 +1,6 @@
+import {MAX_PITCH, SequencerDisplayModel} from '../note-sequencer';
 import {Component, ComponentMouseEvent, ComponentPosition} from './BaseComponent';
 import {LassoSelector} from './LassoSelector';
-import {MAX_PITCH, SequencerDisplayModel} from './note-sequencer';
 import {Note, NoteGridComponent} from './NoteGridComponent';
 import {drawTimeBackground, squaredDistance} from './RenderHelpers';
 

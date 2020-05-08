@@ -1,5 +1,5 @@
+import {MAX_PITCH, MAX_SEMI_H, MIN_PITCH, MIN_SEMI_H, PITCH_PATTERN, SequencerDisplayModel} from '../note-sequencer';
 import {Component, ComponentMouseEvent} from './BaseComponent';
-import {MAX_PITCH, MAX_SEMI_H, MIN_PITCH, MIN_SEMI_H, PITCH_PATTERN, SequencerDisplayModel} from './note-sequencer';
 import {NoteGridComponent} from './NoteGridComponent';
 
 export class PitchRuler extends Component {

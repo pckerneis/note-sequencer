@@ -1,6 +1,6 @@
+import {MAX_PITCH, MAX_VELOCITY, MIN_SEMI_H, PITCH_PATTERN, SequencerDisplayModel} from '../note-sequencer'
 import {Component, ComponentBounds, ComponentMouseEvent, ComponentPosition} from './BaseComponent';
 import {LassoSelector} from './LassoSelector';
-import {MAX_PITCH, MAX_VELOCITY, MIN_SEMI_H, PITCH_PATTERN, SequencerDisplayModel} from './note-sequencer'
 import {drawNote, drawTimeBackground} from './RenderHelpers';
 import {SelectedItemSet} from './SelectedItemSet';
 
@@ -117,7 +117,7 @@ export class NoteGridComponent extends Component {
   // Note management
   public removeNote(note: Note, repaint: boolean = true): void {
     this._selectedSet.removeFromSelection(note);
-    this._notes.filter(n => n !== note);
+    this._notes = this._notes.filter(n => n !== note);
 
     if (repaint) {
       this.getParentComponent().repaint();
@@ -204,6 +204,7 @@ export class NoteGridComponent extends Component {
     const existingNote = this.findNoteAt(local);
 
     if (existingNote != null) {
+      console.log('boom');
       this.removeNote (existingNote);
       return;
     }
@@ -257,7 +258,7 @@ export class NoteGridComponent extends Component {
 
     const existingNote = this.findNoteAt(local);
 
-    if (existingNote == null){
+    if (existingNote == null) {
       this.mouseCursor = "default";
       return;
     }

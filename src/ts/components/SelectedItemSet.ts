@@ -62,7 +62,7 @@ export class SelectedItemSet<T extends SelectableItem> {
   }
 
   public removeFromSelection(item: T): void {
-    this._selection.filter((selected) => selected !== item);
+    this._selection = this._selection.filter((selected) => selected !== item);
     item.selected = false;
     this.onchange();
   }

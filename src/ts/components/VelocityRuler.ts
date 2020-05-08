@@ -1,5 +1,5 @@
+import {SequencerDisplayModel} from '../note-sequencer';
 import {Component} from './BaseComponent';
-import {SequencerDisplayModel} from './note-sequencer';
 
 export class VelocityRuler extends Component {
 

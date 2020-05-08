@@ -1,5 +1,5 @@
+import {SequencerDisplayModel} from '../note-sequencer';
 import {Component, ComponentMouseEvent} from './BaseComponent';
-import {SequencerDisplayModel} from './note-sequencer';
 
 export interface DraggableBorderOwner {
   borderDragged(position: number): void;

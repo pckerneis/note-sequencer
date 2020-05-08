@@ -1,5 +1,5 @@
+import {Colors} from '../note-sequencer';
 import {Component, ComponentMouseEvent, IBounds} from './BaseComponent';
-import {Colors} from './note-sequencer';
 import {SelectableItem, SelectedItemSet} from './SelectedItemSet';
 
 interface Lasso<T extends SelectableItem> {

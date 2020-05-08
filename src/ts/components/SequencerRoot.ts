@@ -1,6 +1,6 @@
+import {SequencerDisplayModel} from '../note-sequencer';
 import {Component} from './BaseComponent';
 import {DraggableBorder, DraggableBorderOwner} from './DraggableBorder';
-import {SequencerDisplayModel} from './note-sequencer';
 import {NoteGridComponent} from './NoteGridComponent';
 import {PitchRuler} from './PitchRuler';
 import {TimeRuler} from './TimeRuler';

@@ -1,5 +1,5 @@
-import {RootComponentHolder} from './BaseComponent';
-import {SequencerRoot} from './SequencerRoot';
+import {RootComponentHolder} from './components/BaseComponent';
+import {SequencerRoot} from './components/SequencerRoot';
 
 export const MIN_SEMI_H: number = 4;
 export const MAX_SEMI_H: number = 30;
@@ -93,7 +93,7 @@ export class NoteSequencer extends HTMLElement {
     this._model = {
       verticalRange: {start: 58, end: 58 + 24},
       visibleTimeRange: {start: 0, end: 16},
-      maxTimeRange: {start: 0, end: 32},
+      maxTimeRange: {start: 0, end: 16},
       signature: {upper: 4, lower: 4},
       zoomSensitivity: 30,
       adaptiveMode: true,
