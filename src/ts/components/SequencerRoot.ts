@@ -9,8 +9,8 @@ import {VelocityTrack} from './VelocityTrack';
 
 export class SequencerRoot extends Component implements DraggableBorderOwner {
   private readonly _grid: NoteGridComponent;
-  private readonly _verticalRuler: PitchRuler;
-  private readonly _horizontalRuler: TimeRuler;
+  private readonly _pitchRuler: PitchRuler;
+  private readonly _timeRuler: TimeRuler;
   private readonly _velocityRuler: VelocityRuler;
   private readonly _draggableBorder: DraggableBorder;
   private readonly _velocityTrack: VelocityTrack;
@@ -23,11 +23,11 @@ export class SequencerRoot extends Component implements DraggableBorderOwner {
     this._grid = new NoteGridComponent(model);
     this.addAndMakeVisible(this._grid);
 
-    this._verticalRuler = new PitchRuler(model, this._grid);
-    this.addAndMakeVisible(this._verticalRuler);
+    this._pitchRuler = new PitchRuler(model, this._grid);
+    this.addAndMakeVisible(this._pitchRuler);
 
-    this._horizontalRuler = new TimeRuler(model, this._grid);
-    this.addAndMakeVisible(this._horizontalRuler);
+    this._timeRuler = new TimeRuler(model, this._grid);
+    this.addAndMakeVisible(this._timeRuler);
 
     this._velocityRuler = new VelocityRuler(model);
     this.addAndMakeVisible(this._velocityRuler);
@@ -59,9 +59,9 @@ export class SequencerRoot extends Component implements DraggableBorderOwner {
 
     const hRulerBounds = bounds.removeFromTop(rulerHeight);
     hRulerBounds.removeFromLeft(rulerWidth);
-    this._horizontalRuler.setBounds(hRulerBounds);
+    this._timeRuler.setBounds(hRulerBounds);
 
-    this._verticalRuler.setBounds(bounds.removeFromLeft(rulerWidth));
+    this._pitchRuler.setBounds(bounds.removeFromLeft(rulerWidth));
 
     this._grid.setBounds(bounds);
 
