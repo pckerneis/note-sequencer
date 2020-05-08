@@ -9,14 +9,110 @@
 <script src="dist/note-sequencer.js"></script>
 <body>
   <div class="full-page">
-    <div class="section">
-      <div class="header">
-        <h1>note-sequencer</h1>
-        <p>Lightweight note sequencer built with Custom Elements and Canvas APIs.</p>
+    <div class="two-panels">
+      <div class="showcase-panel">
+        <div class="showcase-content">
+          <div class="header">
+            <h1>note-sequencer</h1>
+            <p>Lightweight note sequencer built with Custom Elements and Canvas APIs.</p>
+          </div>
+
+          <note-sequencer></note-sequencer>
+
+          <h3>HTML</h3>
+          <pre><code id="code"></code></pre>
+
+        </div>
       </div>
-      <note-sequencer></note-sequencer>
+      <div class="settings-panel">
+
+        <h3>Layout</h3>
+        <div class="layout-row">
+          <h4>Time range</h4>
+          <div class="property-row">
+            <label title="" for="time-start">start</label>
+            <input value="0" type="number" id="time-start" class="input-range" min="0" max="126" />
+          </div>
+          <div class="property-row">
+            <label title="" for="duration">duration</label>
+            <input value="16" type="number" id="duration" class="input-range" min="0" max="126" />
+          </div>
+          <h4>Pitch range</h4>
+          <div class="property-row">
+            <label title="" for="pitch-start">start</label>
+            <input value="0" type="number" id="pitch-start" class="input-range" min="0" max="126" />
+          </div>
+          <div class="property-row">
+            <label title="" for="pitch-end">end</label>
+            <input value="127" type="number" id="pitch-end" class="input-range" min="0" max="126" />
+          </div>
+        </div>
+
+        <h3>Colors</h3>
+        <div id="colors-container"></div>
+      </div>
+
     </div>
   </div>
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const colorsContainer = document.querySelector('#colors-container');
+      const codeContainer = document.querySelector('#code');
+      const timeStart = document.querySelector('#time-start');
+      const duration = document.querySelector('#duration');
+
+      timeStart.addEventListener('change', () => refreshComponent());
+      duration.addEventListener('change', () => refreshComponent());
+
+      const noteSequencer = document.querySelector('note-sequencer');
+
+
+      function refreshComponent() {
+        noteSequencer.timeStart = timeStart.value;
+        noteSequencer.duration = duration.value;
+
+        codeContainer.innerText = noteSequencer.outerHTML;
+      }
+
+      function midiNoteName(noteNumber) {
+        if (noteNumber == null) {
+          return 'none'
+        }
+
+        const pitchNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const pitch = noteNumber % 12;
+        const octave = Math.floor(noteNumber / 12) - 2;
+        return pitchNames[pitch] + octave.toFixed(0);
+      }
+
+      prepareColorPicker('background', '#ffffff');
+      prepareColorPicker('backgroundAlternate', '#eeeeee');
+      // ...
+
+      function prepareColorPicker(attributeName, defaultValue) {
+        const colorPicker = document.createElement('input');
+        colorPicker.type = 'color';
+        colorPicker.value = defaultValue;
+
+        const label = document.createElement('label');
+        const span = document.createElement('span');
+        span.innerText = attributeName;
+        label.append(colorPicker, span);
+
+        colorPicker.addEventListener('change', () => {
+          pianoKeys[attributeName] = colorPicker.value;
+          refreshComponent();
+        });
+
+        colorsContainer.append(label);
+      }
+
+      refreshComponent();
+    });
+  </script>
+
   <div class="github-link">
     <a href="https://github.com/pckerneis/note-sequencer">
       View on GitHub

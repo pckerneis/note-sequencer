@@ -44,7 +44,34 @@ select {
   min-height: 300px;
 }
 
-.section {
+.two-panels {
+  display: flex;
+  flex-direction: row-reverse;
+  width: 100%;
+}
+
+.settings-panel {
+  max-width: 200px;
+  background: #ffffff85;
+  box-shadow: 0 0 11px 0 #00000073;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  padding-left: 8px;
+}
+
+.property-row {
+  display: flex;
+  width: 100%;
+}
+
+.property-row label {
+  flex-grow: 1;
+}
+.showcase-panel {
+  flex-grow: 1;
+}
+
+.showcase-content {
   margin: 20px auto auto;
   width: 80%;
   max-width: 800px;
