@@ -73,7 +73,7 @@ export abstract class Component {
   private _parent: Component = null;
   private _visible: boolean = true;
   private _needRepaint: boolean = true;
-  private _rootHolder: RootComponentHolder;
+  private _rootHolder: RootComponentHolder<this>;
   private _hovered: boolean;
   private _mouseCursor: string;
   private _beingDragged: boolean;
@@ -117,7 +117,7 @@ export abstract class Component {
     return Math.ceil(this._bounds.height);
   }
 
-  public set rootHolder(holder: RootComponentHolder) {
+  public set rootHolder(holder: RootComponentHolder<this>) {
     this._rootHolder = holder;
   }
 
@@ -297,10 +297,10 @@ const CLICK_INTERVAL = 200;
 const DOUBLE_CLICK_INTERVAL = 500;
 const DOUBLE_PRESS_INTERVAL = 400;
 
-export class RootComponentHolder {
+export class RootComponentHolder<T extends Component> {
   public readonly canvas: HTMLCanvasElement;
 
-  constructor(public readonly width: number, public readonly height: number, public readonly rootComponent: Component) {
+  constructor(public readonly width: number, public readonly height: number, public readonly rootComponent: T) {
     rootComponent.rootHolder = this;
 
     this.canvas = document.createElement('canvas');

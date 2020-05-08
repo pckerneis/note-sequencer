@@ -83,9 +83,13 @@ const defaultColors: Colors = {
  */
 export class NoteSequencer extends HTMLElement {
 
+  public static readonly TIME_START: string = 'time-start';
+  public static readonly DURATION: string = 'duration';
+
   private _shadowRoot: ShadowRoot;
-  private _rootComponent: RootComponentHolder;
+  private _rootComponent: RootComponentHolder<SequencerRoot>;
   private readonly _model: SequencerDisplayModel;
+  private readonly _sequencerRoot: SequencerRoot;
 
   constructor() {
     super();
@@ -102,7 +106,8 @@ export class NoteSequencer extends HTMLElement {
 
     this._shadowRoot = this.attachShadow({mode: 'closed'});
 
-    this._rootComponent = new RootComponentHolder(100, 100, new SequencerRoot(this._model));
+    this._sequencerRoot = new SequencerRoot(this._model);
+    this._rootComponent = new RootComponentHolder<SequencerRoot>(100, 100, this._sequencerRoot);
 
     this._shadowRoot.append(this._rootComponent.canvas);
 
@@ -111,7 +116,7 @@ export class NoteSequencer extends HTMLElement {
     this._shadowRoot.append(styleElement);
 
     // Events handlers
-    const resizeObserver = new ResizeObserver(() => this.resize());
+    const resizeObserver = new ResizeObserver(() => this.resizeAndDraw());
     resizeObserver.observe(this);
   }
 
@@ -126,14 +131,78 @@ export class NoteSequencer extends HTMLElement {
    * Observed HTML attributes (custom element implementation).
    */
   public static get observedAttributes(): string[] {
-    return [];
+    return [
+      NoteSequencer.TIME_START,
+      'duration',
+      'pitch-start',
+      'pitch-end',
+    ];
   }
+
+  // Attributes/properties reflection
+
+  /**
+   * First time value to show.
+   */
+  public get timeStart(): string {
+    return this.getAttribute(NoteSequencer.TIME_START);
+  }
+
+  public set timeStart(value: string) {
+    const newValue = Math.max(0, parseInt(value));
+    const offset = newValue - this._model.maxTimeRange.start;
+
+    if (offset === 0) {
+      return;
+    }
+
+    this._model.maxTimeRange.start += offset;
+    this._model.maxTimeRange.end += offset;
+
+    // Adapt visible range by translating to the left or to the right if needed
+
+    const leftExcess = this._model.maxTimeRange.start - this._model.visibleTimeRange.start;
+
+    if (leftExcess > 0) {
+      this._model.visibleTimeRange.start += leftExcess;
+      this._model.visibleTimeRange.end += leftExcess;
+    }
+
+    const rightExcess = this._model.maxTimeRange.end - this._model.visibleTimeRange.end;
+
+    if (rightExcess < 0) {
+      this._model.visibleTimeRange.start += rightExcess;
+      this._model.visibleTimeRange.end += rightExcess;
+    }
+
+    this._sequencerRoot.repaint();
+    this.setAttribute(NoteSequencer.TIME_START, '' + newValue);
+  }
+
+  /**
+   * Maximum visible time range from timeStart.
+   */
+  public get duration(): string {
+    return this.getAttribute(NoteSequencer.DURATION);
+  }
+
+  public set duration(newValue: string) {
+    this._model.maxTimeRange.end = this._model.maxTimeRange.start + parseInt(newValue);
+    this._model.visibleTimeRange.end = Math.min(this._model.visibleTimeRange.end, this._model.maxTimeRange.end);
+    this._sequencerRoot.repaint();
+    this.setAttribute(NoteSequencer.DURATION, '' + newValue);
+  }
+
+  // _________________
 
   /**
    * Called when the HTML node is first connected to the DOM (custom element implementation).
    */
   public connectedCallback(): void {
-    this.resize();
+    this.timeStart = this.timeStart         || "0";
+    this.duration = this.duration           || "16";
+
+    this.resizeAndDraw();
   }
 
   /**
@@ -147,18 +216,10 @@ export class NoteSequencer extends HTMLElement {
     this._rootComponent.render();
   }
 
-  private resize(): void {
+  private resizeAndDraw(): void {
     const boundingClientRect = this.getBoundingClientRect();
     this._rootComponent.resize(Math.ceil(boundingClientRect.width), Math.ceil(boundingClientRect.height));
     this.draw();
-  }
-
-  private getStringAttribute(key: string): string {
-    return this.hasAttribute(key) ? this.getAttribute(key) : null;
-  }
-
-  private getNumberAttribute(key: string): number {
-    return this.hasAttribute(key) ? Number(this.getAttribute(key)) : null;
   }
 }
 
