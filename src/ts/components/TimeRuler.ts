@@ -33,8 +33,6 @@ export class TimeRuler extends Component {
     const toAdd = (this.model.maxTimeRange.end - this.model.maxTimeRange.start) * dragOffset * dragSensitivity;
     const amountToAdd = toAdd / 2;
 
-    console.log(dragOffset, '->', toAdd);
-
     let newStart = this.rangeAtMouseDown.start + amountToAdd;
     let newEnd = this.rangeAtMouseDown.end - amountToAdd;
 
