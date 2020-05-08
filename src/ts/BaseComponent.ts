@@ -266,7 +266,6 @@ export abstract class Component {
     } else {
       this._hovered = false;
     }
-    console.log('exit', this.hovered);
   }
 
   public mousePressed(event: ComponentMouseEvent): void {
