@@ -204,7 +204,6 @@ export class NoteGridComponent extends Component {
     const existingNote = this.findNoteAt(local);
 
     if (existingNote != null) {
-      console.log('boom');
       this.removeNote (existingNote);
       return;
     }
