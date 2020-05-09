@@ -76,10 +76,14 @@ export class PitchRuler extends Component {
   }
 
   public doubleClicked(event: ComponentMouseEvent): void {
-    this.model.verticalRange.start = MIN_PITCH;
-    this.model.verticalRange.end = MAX_PITCH;
+    const pos = this.getPosition();
 
-    this.getParentComponent().repaint();
+    if (! this.model.theme.isOnPianoRoll(event.position.x - pos.x, event.position.y - pos.y, this.width, this.height,
+        this.grid.getSemitoneHeight())) {
+      this.model.verticalRange.start = MIN_PITCH;
+      this.model.verticalRange.end = MAX_PITCH;
+      this.getParentComponent().repaint();
+    }
   }
 
   protected resized(): void {
@@ -94,6 +98,7 @@ export class PitchRuler extends Component {
     const start = this.model.verticalRange.start;
     const end = this.model.verticalRange.end;
     const semiHeight = this.grid.getSemitoneHeight();
+
     this.model.theme.drawPitchRuler(g, this.width, this.height, start, end, semiHeight, this.hoveredPitch,
       this.model.colors);
 
