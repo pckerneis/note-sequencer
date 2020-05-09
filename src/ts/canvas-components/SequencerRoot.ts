@@ -85,4 +85,47 @@ export class SequencerRoot extends Component implements DraggableBorderOwner {
 
     this.resized();
   }
+
+  public setTimeStart(numberValue: number): number {
+    const newValue = Math.max(0, numberValue);
+
+    const offset = newValue - this.model.maxTimeRange.start;
+
+    if (offset === 0) {
+      return 0;
+    }
+
+    this.model.maxTimeRange.start += offset;
+    this.model.maxTimeRange.end += offset;
+
+    // Adapt visible range by translating to the left or to the right if needed
+
+    const leftExcess = this.model.maxTimeRange.start - this.model.visibleTimeRange.start;
+
+    if (leftExcess > 0) {
+      this.model.visibleTimeRange.start += leftExcess;
+      this.model.visibleTimeRange.end += leftExcess;
+    }
+
+    const rightExcess = this.model.maxTimeRange.end - this.model.visibleTimeRange.end;
+
+    if (rightExcess < 0) {
+      this.model.visibleTimeRange.start += rightExcess;
+      this.model.visibleTimeRange.end += rightExcess;
+    }
+
+    this.repaint();
+
+    return newValue;
+  }
+
+  public setDuration(numberValue: number): number {
+    numberValue = Math.max(0, numberValue);
+
+    this.model.maxTimeRange.end = this.model.maxTimeRange.start + numberValue;
+    this.model.visibleTimeRange.end = Math.min(this.model.visibleTimeRange.end, this.model.maxTimeRange.end);
+    this.repaint();
+
+    return numberValue;
+  }
 }

@@ -144,53 +144,40 @@ export class NoteSequencer extends HTMLElement {
   /**
    * First time value to show.
    */
-  public get timeStart(): string {
-    return this.getAttribute(NoteSequencer.TIME_START);
+  public get timeStart(): number {
+    return this._model.maxTimeRange.start;
   }
 
-  public set timeStart(value: string) {
-    const newValue = Math.max(0, parseInt(value));
-    const offset = newValue - this._model.maxTimeRange.start;
+  public set timeStart(value: number) {
+    let numberValue: number = Number(value);
 
-    if (offset === 0) {
-      return;
+    if (isNaN(numberValue)) {
+      throw new Error('Unhandled type error when setting timeStart');
     }
 
-    this._model.maxTimeRange.start += offset;
-    this._model.maxTimeRange.end += offset;
+    numberValue = this._sequencerRoot.setTimeStart(numberValue);
 
-    // Adapt visible range by translating to the left or to the right if needed
-
-    const leftExcess = this._model.maxTimeRange.start - this._model.visibleTimeRange.start;
-
-    if (leftExcess > 0) {
-      this._model.visibleTimeRange.start += leftExcess;
-      this._model.visibleTimeRange.end += leftExcess;
-    }
-
-    const rightExcess = this._model.maxTimeRange.end - this._model.visibleTimeRange.end;
-
-    if (rightExcess < 0) {
-      this._model.visibleTimeRange.start += rightExcess;
-      this._model.visibleTimeRange.end += rightExcess;
-    }
-
-    this._sequencerRoot.repaint();
-    this.setAttribute(NoteSequencer.TIME_START, '' + newValue);
+    this.setAttribute(NoteSequencer.TIME_START, numberValue.toString());
   }
 
   /**
    * Maximum visible time range from timeStart.
    */
-  public get duration(): string {
-    return this.getAttribute(NoteSequencer.DURATION);
+  public get duration(): number {
+    return this._model.maxTimeRange.start + this._model.maxTimeRange.end;
   }
 
-  public set duration(newValue: string) {
-    this._model.maxTimeRange.end = this._model.maxTimeRange.start + parseInt(newValue);
-    this._model.visibleTimeRange.end = Math.min(this._model.visibleTimeRange.end, this._model.maxTimeRange.end);
-    this._sequencerRoot.repaint();
-    this.setAttribute(NoteSequencer.DURATION, '' + newValue);
+  public set duration(newValue: number) {
+    console.log(newValue);
+    let numberValue: number = Number(newValue);
+
+    if (isNaN(numberValue)) {
+      throw new Error('Unhandled type error when setting duration');
+    }
+
+    numberValue = this._sequencerRoot.setDuration(numberValue);
+
+    this.setAttribute(NoteSequencer.DURATION, numberValue.toString());
   }
 
   // _________________
@@ -201,8 +188,8 @@ export class NoteSequencer extends HTMLElement {
   public connectedCallback(): void {
     this._rootHolder.attachMouseEventListeners();
 
-    this.timeStart = this.timeStart         || "0";
-    this.duration = this.duration           || "16";
+    this.timeStart = this.timeStart         || 0;
+    this.duration = this.duration           || 16;
 
     this.resizeAndDraw();
   }
