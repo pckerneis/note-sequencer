@@ -5,8 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>note-sequencer demo page</title>
   <link rel="stylesheet" type="text/css" href="style/index.css">
+
+  <!-- Pickr -->
+  <link rel="stylesheet" href="./lib/pickr/nano.min.css"/>
+
 </head>
-<script src="dist/note-sequencer.js"></script>
+<script src="../dist/note-sequencer.js"></script>
+<script src="./lib/pickr/pickr.min.js"></script>
+
 <body>
   <div class="full-page">
     <div class="two-panels">
@@ -27,31 +33,19 @@
       <div class="settings-panel">
 
         <h3>Layout</h3>
-        <div class="layout-row">
-          <h4>Time range</h4>
-          <div class="property-row">
-            <label title="" for="time-start">start</label>
-            <input value="0" type="number" id="time-start" class="input-range" min="0" max="126" step="0.25" />
-          </div>
-          <div class="property-row">
-            <label title="" for="duration">duration</label>
-            <input value="16" type="number" id="duration" class="input-range" min="0" max="126" step="0.25" />
-          </div>
-          <h4>Pitch range</h4>
-          <div class="property-row">
-            <label title="" for="pitch-start">start</label>
-            <input value="0" type="number" id="pitch-start" class="input-range" min="0" max="126" />
-          </div>
-          <div class="property-row">
-            <label title="" for="pitch-end">end</label>
-            <input value="127" type="number" id="pitch-end" class="input-range" min="0" max="126" />
-          </div>
+        <h4>Time range</h4>
+        <div class="property-row">
+          <label title="" for="time-start">start</label>
+          <input value="0" type="number" id="time-start" class="input-range" min="0" max="126" step="0.25" />
+        </div>
+        <div class="property-row">
+          <label title="" for="duration">duration</label>
+          <input value="16" type="number" id="duration" class="input-range" min="0" max="126" step="0.25" />
         </div>
 
-        <h3>Colors</h3>
+        <h4>Colors</h4>
         <div id="colors-container"></div>
       </div>
-
     </div>
   </div>
 
@@ -72,7 +66,6 @@
 
       const noteSequencer = document.querySelector('note-sequencer');
 
-
       function refreshComponent() {
         noteSequencer.timeStart = Number(timeStart.value);
         noteSequencer.duration = Number(duration.value);
@@ -85,21 +78,52 @@
       });
 
       function prepareColorPicker(colorName, defaultValue) {
-        const colorPicker = document.createElement('input');
-        colorPicker.type = 'color';
-        colorPicker.value = defaultValue;
+        const pickerElement = document.createElement('div');
+        pickerElement.id = colorName + '-color-picker';
 
         const label = document.createElement('label');
         const span = document.createElement('span');
         span.innerText = colorName;
-        label.append(colorPicker, span);
+        label.append(span);
 
-        colorPicker.addEventListener('change', () => {
-          noteSequencer.style.setProperty(getCssName(colorName), colorPicker.value);
-          refreshComponent();
+        const propertyRow = document.createElement('div');
+        propertyRow.classList.add('property-row');
+
+        propertyRow.append(label, pickerElement);
+        colorsContainer.append(propertyRow);
+
+        const pickr = Pickr.create({
+          el: '#' + pickerElement.id,
+          theme: 'nano',
+          swatches: [
+          ],
+          default: defaultValue,
+          components: {
+            // Main components
+            preview: true,
+            opacity: true,
+            hue: true,
+
+            // Input / output Options
+            interaction: {
+              hex: true,
+              rgba: true,
+              // hsla: true,
+              // hsva: true,
+              // cmyk: true,
+              // clear: true,
+              input: true,
+              save: true
+            }
+          },
+          i18n: {
+            'btn:save': 'Apply',
+          }
         });
 
-        colorsContainer.append(label);
+        pickr.on('save', (color) => {
+          noteSequencer.style.setProperty(getCssName(colorName), color.toHEXA());
+        });
       }
 
       refreshComponent();

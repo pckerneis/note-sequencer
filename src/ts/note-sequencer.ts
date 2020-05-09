@@ -182,7 +182,6 @@ export class NoteSequencer extends CustomElement {
   }
 
   public set duration(newValue: number) {
-    console.log(newValue);
     let numberValue: number = Number(newValue);
 
     if (isNaN(numberValue)) {
