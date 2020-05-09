@@ -40,8 +40,10 @@ export class SequencerRoot extends Component implements DraggableBorderOwner {
   }
 
   public resized(): void {
-    if (this.draggableBorderPosition == null) {
+    if (this.model.velocityTrackHeight == null) {
       this.draggableBorderPosition = this.height - 80;
+    } else if (this.model.velocityTrackHeight < 0) {
+      this.draggableBorderPosition = this.height * (1 + this.model.velocityTrackHeight);
     }
 
     const rulerWidth = 40;
@@ -82,6 +84,8 @@ export class SequencerRoot extends Component implements DraggableBorderOwner {
       this.draggableBorderPosition = this.draggableBorderPosition > this.height - snapThreshold / 2 ?
         this.height : this.height - snapThreshold;
     }
+
+    this.model.velocityTrackHeight = this.height - this.draggableBorderPosition;
 
     this.resized();
   }
