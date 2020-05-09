@@ -14,9 +14,9 @@
 >
 > Some basic features are still to implement: save/load, programmatic scroll, play bar... 
 >
-> The interaction with sound generators has to be carefully designed so the overall API may change a lot.
+> The interaction with sound generators is not clearly defined yet so the overall API may change a lot.
 >
-> If you wan't to get involve or share your thoughts, feel free to get in touch 
+> If you wan't to get involved or share your thoughts, feel free to get in touch 
 
 **Key features**
 - Grid snap
