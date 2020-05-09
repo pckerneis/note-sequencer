@@ -32,6 +32,14 @@
       <div class="settings-panel">
 
         <h3>Layout</h3>
+        <h4>Theme</h4>
+        <div class="property-row">
+          <label title="" for="theme">start</label>
+          <select id="theme">
+            <option value="default">Default</option>
+            <option value="live">Live</option>
+          </select>
+        </div>
         <h4>Time range</h4>
         <div class="property-row">
           <label title="" for="time-start">start</label>
@@ -59,15 +67,18 @@
       const codeContainer = document.querySelector('#code');
       const timeStart = document.querySelector('#time-start');
       const duration = document.querySelector('#duration');
+      const theme = document.querySelector('#theme');
 
       timeStart.addEventListener('change', () => refreshComponent());
       duration.addEventListener('change', () => refreshComponent());
+      theme.addEventListener('change', () => refreshComponent());
 
       const noteSequencer = document.querySelector('note-sequencer');
 
       function refreshComponent() {
         noteSequencer.timeStart = Number(timeStart.value);
         noteSequencer.duration = Number(duration.value);
+        noteSequencer.theme = theme.options[theme.selectedIndex].value;
 
         codeContainer.innerText = noteSequencer.outerHTML;
       }
