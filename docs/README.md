@@ -6,11 +6,11 @@
 
 **note-sequencer** is a lightweight interactive and customizable note sequencer. It is based on Custom Elements and Canvas APIs.
 
-![alt text](https://github.com/pckerneis/note-sequencer/raw/master/docs/img/main.png "note-sequencer screenshot")
+![alt text](https://github.com/pckerneis/note-sequencer/raw/master/docs/img/main-demo.gif "note-sequencer screenshot")
 
 ## Basic usage
 
-Simply insert `note-sequencer.js` into your webpage and add a `piano-keys` element to it.
+Simply insert `note-sequencer.js` into your webpage and add a `note-sequencer` element to it.
 ```
 <note-sequencer></note-sequencer>
 ```

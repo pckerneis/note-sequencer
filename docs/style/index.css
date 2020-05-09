@@ -1,0 +1,10 @@
+note-sequencer {
+    margin: auto;
+    height: 230px;
+    max-width: 700px;
+    box-shadow: 0 0 32px 0 rgba(0,0,0,0.1);
+}
+
+.cover-main {
+    user-select: none;
+}
