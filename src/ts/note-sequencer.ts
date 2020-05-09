@@ -1,5 +1,5 @@
-import {RootComponentHolder} from './components/RootComponentHolder';
-import {SequencerRoot} from './components/SequencerRoot';
+import {RootComponentHolder} from './canvas-components/RootComponentHolder';
+import {SequencerRoot} from './canvas-components/SequencerRoot';
 
 export const MIN_SEMI_H: number = 4;
 export const MAX_SEMI_H: number = 30;
