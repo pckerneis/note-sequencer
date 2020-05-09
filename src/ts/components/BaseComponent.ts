@@ -300,6 +300,10 @@ const DOUBLE_PRESS_INTERVAL = 400;
 export class RootComponentHolder<T extends Component> {
   public readonly canvas: HTMLCanvasElement;
 
+  private canvasMouseDownListener: (event: MouseEvent) => void;
+  private documentMouseUpListener: (event: MouseEvent) => void;
+  private documentMouseMoveListener: (event: MouseEvent) => void;
+
   constructor(public readonly width: number, public readonly height: number, public readonly rootComponent: T) {
     rootComponent.rootHolder = this;
 
@@ -307,6 +311,22 @@ export class RootComponentHolder<T extends Component> {
     this.canvas.width = width;
     this.canvas.height = height;
 
+    this.initMouseEventListeners();
+  }
+
+  public render(): void {
+    // Recursively paint components that need to be refreshed
+    this.rootComponent.paint(this.canvas.getContext('2d'));
+  }
+
+  public resize(width: number, height: number): void {
+    this.canvas.width = width;
+    this.canvas.height = height;
+
+    this.rootComponent.setBounds(new ComponentBounds(0, 0, width, height));
+  }
+
+  public initMouseEventListeners(): void {
     let pressedComponent: Component = null;
     let componentUnderMouse: Component = null;
     let mouseDownPos: ComponentPosition;
@@ -319,7 +339,6 @@ export class RootComponentHolder<T extends Component> {
     let lastClickPos: ComponentPosition;
     let wasDragged: boolean = false;
     let isDragging: boolean = false;
-
 
     const mousePositionRelativeToCanvas = (event: MouseEvent) => {
       const canvasBounds = this.canvas.getBoundingClientRect();
@@ -337,7 +356,7 @@ export class RootComponentHolder<T extends Component> {
       }
     };
 
-    this.canvas.addEventListener('mousedown', (mouseEvent) => hit(mouseEvent, (component) => {
+    this.canvasMouseDownListener = (mouseEvent) => hit(mouseEvent, (component) => {
       pressedComponent = component;
       mouseDownPos = mousePositionRelativeToCanvas(mouseEvent);
       mouseDownTime = performance.now();
@@ -374,9 +393,9 @@ export class RootComponentHolder<T extends Component> {
 
         consecutivePressCount = 0;
       }
-    }));
+    });
 
-    document.addEventListener('mouseup', (mouseEvent: MouseEvent) => {
+    this.documentMouseUpListener = (mouseEvent: MouseEvent) => {
       mouseUpPos = mousePositionRelativeToCanvas(mouseEvent);
       mouseUpTime = performance.now();
 
@@ -430,14 +449,14 @@ export class RootComponentHolder<T extends Component> {
 
       wasDragged = false;
       isDragging = false;
-    });
+    };
 
-    document.addEventListener('mousemove', (mouseEvent: MouseEvent) => {
+    this.documentMouseMoveListener = (mouseEvent: MouseEvent) => {
       const {x, y} = mousePositionRelativeToCanvas(mouseEvent);
 
       if (! wasDragged
-          && mouseDownPos != null
-          && squaredDistance(mouseDownPos.x, mouseDownPos.y, x, y) > CLICK_MAX_DISTANCE_SQUARED) {
+        && mouseDownPos != null
+        && squaredDistance(mouseDownPos.x, mouseDownPos.y, x, y) > CLICK_MAX_DISTANCE_SQUARED) {
         wasDragged = true;
       }
 
@@ -482,19 +501,19 @@ export class RootComponentHolder<T extends Component> {
           isDragging,
         });
       }
-    });
+    };
   }
 
-  public render(): void {
-    // Recursively paint components that need to be refreshed
-    this.rootComponent.paint(this.canvas.getContext('2d'));
+  public attachMouseEventListeners(): void {
+    this.canvas.addEventListener('mousedown', this.canvasMouseDownListener);
+    document.addEventListener('mouseup', this.documentMouseUpListener);
+    document.addEventListener('mousemove', this.documentMouseMoveListener);
   }
 
-  public resize(width: number, height: number): void {
-    this.canvas.width = width;
-    this.canvas.height = height;
-
-    this.rootComponent.setBounds(new ComponentBounds(0, 0, width, height));
+  public removeMouseEventListeners(): void {
+    this.canvas.removeEventListener('mousedown', this.canvasMouseDownListener);
+    document.removeEventListener('mouseup', this.documentMouseUpListener);
+    document.removeEventListener('mousemove', this.documentMouseMoveListener);
   }
 }
 

@@ -87,7 +87,7 @@ export class NoteSequencer extends HTMLElement {
   public static readonly DURATION: string = 'duration';
 
   private _shadowRoot: ShadowRoot;
-  private _rootComponent: RootComponentHolder<SequencerRoot>;
+  private _rootHolder: RootComponentHolder<SequencerRoot>;
   private readonly _model: SequencerDisplayModel;
   private readonly _sequencerRoot: SequencerRoot;
 
@@ -107,9 +107,9 @@ export class NoteSequencer extends HTMLElement {
     this._shadowRoot = this.attachShadow({mode: 'closed'});
 
     this._sequencerRoot = new SequencerRoot(this._model);
-    this._rootComponent = new RootComponentHolder<SequencerRoot>(100, 100, this._sequencerRoot);
+    this._rootHolder = new RootComponentHolder<SequencerRoot>(100, 100, this._sequencerRoot);
 
-    this._shadowRoot.append(this._rootComponent.canvas);
+    this._shadowRoot.append(this._rootHolder.canvas);
 
     const styleElement = document.createElement('style');
     styleElement.innerText = CSS_STYLE;
@@ -199,10 +199,16 @@ export class NoteSequencer extends HTMLElement {
    * Called when the HTML node is first connected to the DOM (custom element implementation).
    */
   public connectedCallback(): void {
+    this._rootHolder.attachMouseEventListeners();
+
     this.timeStart = this.timeStart         || "0";
     this.duration = this.duration           || "16";
 
     this.resizeAndDraw();
+  }
+
+  public disconnectedCallback(): void {
+    this._rootHolder.removeMouseEventListeners();
   }
 
   /**
@@ -213,12 +219,12 @@ export class NoteSequencer extends HTMLElement {
   }
 
   public draw(): void {
-    this._rootComponent.render();
+    this._rootHolder.render();
   }
 
   private resizeAndDraw(): void {
     const boundingClientRect = this.getBoundingClientRect();
-    this._rootComponent.resize(Math.ceil(boundingClientRect.width), Math.ceil(boundingClientRect.height));
+    this._rootHolder.resize(Math.ceil(boundingClientRect.width), Math.ceil(boundingClientRect.height));
     this.draw();
   }
 }
