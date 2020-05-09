@@ -26,6 +26,7 @@ export interface TimeSignature {
 }
 
 export interface SequencerDisplayModel {
+  velocityTrackHeight: number,
   zoomSensitivity: number;
   verticalRange: Range,
   visibleTimeRange: Range,
@@ -95,6 +96,7 @@ export class NoteSequencer extends CustomElement {
     super();
 
     this._model = {
+      velocityTrackHeight: -0.2,
       verticalRange: {start: 58, end: 58 + 24},
       visibleTimeRange: {start: 0, end: 16},
       maxTimeRange: {start: 0, end: 16},
