@@ -228,7 +228,7 @@ export class LookAndFeel_Default implements LookAndFeel {
   }
 
   public isOnPianoRoll(x: number, y: number, width: number, height: number, semitoneHeight: number): boolean {
-    return this.isPianoRollVisible(semitoneHeight) && x > x + width / 2;
+    return this.isPianoRollVisible(semitoneHeight) && x > width / 2;
   }
 
   public isPianoRollVisible(semiHeight: number): boolean {
