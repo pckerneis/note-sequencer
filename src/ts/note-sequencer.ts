@@ -1,4 +1,4 @@
-import {RootComponentHolder} from './components/BaseComponent';
+import {RootComponentHolder} from './components/RootComponentHolder';
 import {SequencerRoot} from './components/SequencerRoot';
 
 export const MIN_SEMI_H: number = 4;
