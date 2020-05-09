@@ -1,7 +1,6 @@
-import {MAX_PITCH, MAX_VELOCITY, MIN_SEMI_H, PITCH_PATTERN, SequencerDisplayModel} from '../note-sequencer'
+import {MAX_PITCH, MAX_VELOCITY, MIN_SEMI_H, SequencerDisplayModel} from '../note-sequencer'
 import {Component, ComponentBounds, ComponentMouseEvent, ComponentPosition} from './BaseComponent';
 import {LassoSelector} from './LassoSelector';
-import {drawNote, drawTimeBackground} from './RenderHelpers';
 import {SelectedItemSet} from './SelectedItemSet';
 
 export interface Note {
@@ -99,9 +98,9 @@ export class NoteGridComponent extends Component {
     const semiHeight = this.getSemitoneHeight();
 
     if (semiHeight > MIN_SEMI_H) {
-      this.drawSemiTonePattern(g, start, end, semiHeight);
+      this.model.theme.drawSemiTonePattern(g, this.width, this.height, start, end, semiHeight, this.model.colors);
     } else {
-      this.drawOctaveLines(g, start, end, semiHeight);
+      this.model.theme.drawOctaveLines(g, this.width, this.height, start, end, semiHeight, this.model.colors);
     }
 
     this._lasso.drawLasso(g);
@@ -635,7 +634,8 @@ export class NoteGridComponent extends Component {
     if (incr <= 0)
       return;
 
-    drawTimeBackground(g, this.height, sixteenth, incr, start, end, this.model.signature, this.model.colors);
+    this.model.theme.drawTimeBackground(g, this.height, sixteenth, incr, start, end, this.model.signature,
+      this.model.colors);
   }
 
   private drawNotes(g: CanvasRenderingContext2D, semiHeight: number, sixteenth: number): void {
@@ -649,40 +649,7 @@ export class NoteGridComponent extends Component {
       const d = n.tempDuration != null ? n.tempDuration : n.duration;
       const w = Math.max(2, d * sixteenth);
 
-      drawNote(g, x, y, w, semiHeight, n.velocity, n.selected, this.model.colors);
-    }
-  }
-
-  private drawOctaveLines(g: CanvasRenderingContext2D, start: number, end: number, semiHeight: number): void {
-    g.fillStyle = this.model.colors.strokeDark;
-
-    for (let i = 0; i < 128; i += 12) {
-      if (i >= start && i <= end) {
-        const y = this.height - (i - start) * semiHeight;
-        g.fillRect(0, y, this.width, 1);
-      }
-    }
-  }
-
-  private drawSemiTonePattern(g: CanvasRenderingContext2D, start: number, end: number, semiHeight: number): void {
-    const yOffset = (start - Math.floor(start)) * semiHeight;
-
-    for (let i = Math.floor(start); i < Math.ceil(end); ++i) {
-      const y = this.height - (i - Math.floor(start)) * semiHeight;
-      const pitchClass = i % 12;
-
-      const viewportY = yOffset + y - semiHeight;
-
-      // Black key
-      g.fillStyle = this.model.colors.backgroundBlackKey;
-
-      if (PITCH_PATTERN[pitchClass]) {
-        g.fillRect(0, viewportY, this.width, semiHeight);
-      }
-
-      // Line separation
-      g.fillStyle = this.model.colors.strokeLight;
-      g.fillRect(0, viewportY, this.width, 1);
+      this.model.theme.drawNote(g, x, y, w, semiHeight, n.velocity, n.selected, this.model.colors);
     }
   }
 

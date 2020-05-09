@@ -1,6 +1,7 @@
 import {RootComponentHolder} from './canvas-components/RootComponentHolder';
 import {SequencerRoot} from './canvas-components/SequencerRoot';
 import {CustomElement} from './custom-element/CustomElement';
+import {LookAndFeel, LookAndFeel_Default} from './themes/LookAndFeel';
 
 export const MIN_SEMI_H: number = 4;
 export const MAX_SEMI_H: number = 30;
@@ -34,6 +35,7 @@ export interface SequencerDisplayModel {
   signature: TimeSignature,
   adaptiveMode: boolean,
   colors: Colors,
+  theme: LookAndFeel,
 }
 
 export interface Colors {
@@ -104,6 +106,7 @@ export class NoteSequencer extends CustomElement {
       zoomSensitivity: 30,
       adaptiveMode: true,
       colors: defaultColors,
+      theme: new LookAndFeel_Default(),
     };
 
     this._shadowRoot = this.attachShadow({mode: 'closed'});

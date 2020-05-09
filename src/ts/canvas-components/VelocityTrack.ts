@@ -2,7 +2,7 @@ import {MAX_PITCH, SequencerDisplayModel} from '../note-sequencer';
 import {Component, ComponentMouseEvent, ComponentPosition} from './BaseComponent';
 import {LassoSelector} from './LassoSelector';
 import {Note, NoteGridComponent} from './NoteGridComponent';
-import {drawTimeBackground, squaredDistance} from './RenderHelpers';
+import {squaredDistance} from './RenderHelpers';
 
 export class VelocityTrack extends Component {
 
@@ -125,36 +125,22 @@ export class VelocityTrack extends Component {
       return;
     }
 
-    drawTimeBackground(g, this.height, sixteenth, incr, start, end, this.model.signature, this.model.colors);
+    this.model.theme.drawTimeBackground(g, this.height, sixteenth, incr, start, end,
+        this.model.signature, this.model.colors);
   }
 
   private drawVelocityHandles(g: CanvasRenderingContext2D): void {
     const vScale = this.height / MAX_PITCH;
+    const hScale = this.grid.getSixteenthWidth();
 
-    for (const n of this.grid.notes) {
-      if (n.hidden) {
-        continue;
-      }
+    for (const note of this.grid.notes) {
+      const x = this.grid.getPositionForTime(note.time);
 
-      const x = this.grid.getPositionForTime(n.time);
-
-      if (x < -5 || x > this.width + 5)
+      if (x + note.duration * hScale < -5 || x > this.width + 5)
         continue;
 
-      const h = n.velocity * vScale;
-      const y = (this.height - h);
-
-      const color = n.selected ? this.model.colors.velocityHandleSelected : this.model.colors.velocityHandle;
-      g.fillStyle = color;
-      g.fillRect(x - 1, y, 2, h);
-
-      g.strokeStyle = color;
-      g.fillStyle = this.model.colors.background;
-      g.lineWidth = 1.8;
-      g.beginPath();
-      g.arc(x, y, this.handleRadius, 0, Math.PI * 2);
-      g.fill();
-      g.stroke();
+      this.model.theme.drawVelocityHandle(g, x, note, this.width, this.height, vScale, hScale,
+        this.handleRadius, this.model.colors);
     }
   }
 

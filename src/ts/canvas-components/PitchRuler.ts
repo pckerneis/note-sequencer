@@ -1,4 +1,4 @@
-import {MAX_PITCH, MAX_SEMI_H, MIN_PITCH, MIN_SEMI_H, PITCH_PATTERN, SequencerDisplayModel} from '../note-sequencer';
+import {MAX_PITCH, MAX_SEMI_H, MIN_PITCH, MIN_SEMI_H, SequencerDisplayModel} from '../note-sequencer';
 import {Component, ComponentMouseEvent} from './BaseComponent';
 import {NoteGridComponent} from './NoteGridComponent';
 
@@ -94,23 +94,7 @@ export class PitchRuler extends Component {
 
     // piano roll
     if (this.isPianoRollVisible()) {
-      for (let i = Math.floor(start); i <= Math.ceil(end); ++i) {
-        const y = bounds.height - (i - start) * semiHeight;
-        const pitchClass = i % 12;
-        const isBlack = PITCH_PATTERN[pitchClass];
-
-        g.fillStyle = isBlack ?
-          g.fillStyle = this.model.colors.blackKey :
-          g.fillStyle = this.model.colors.whiteKey;
-
-        g.fillRect(bounds.width / 2, y - semiHeight,
-          bounds.width / 2, semiHeight);
-
-        // stroke
-        g.fillStyle = this.model.colors.strokeLight;
-        g.fillRect(bounds.width / 2, y - semiHeight,
-          bounds.width / 2, 1);
-      }
+      this.model.theme.drawPianoRoll(g, this.width, this.height, start, end, semiHeight, this.model.colors);
 
       // left border
       g.fillStyle = this.model.colors.strokeLight;
