@@ -1,4 +1,4 @@
-import {MAX_PITCH, MAX_SEMI_H, MIN_PITCH, MIN_SEMI_H, SequencerDisplayModel} from '../note-sequencer';
+import {MAX_PITCH, MAX_SEMI_H, MIN_PITCH, SequencerDisplayModel} from '../note-sequencer';
 import {Component, ComponentMouseEvent} from './BaseComponent';
 import {NoteGridComponent} from './NoteGridComponent';
 
@@ -14,20 +14,21 @@ export class PitchRuler extends Component {
 
   private isPreviewingNote: boolean = false;
   private lastPreviewedPitch: number = null;
+  private hoveredPitch: number = null;
 
   constructor(private readonly model: SequencerDisplayModel, private grid: NoteGridComponent) {
     super();
   }
 
   public mousePressed(event: ComponentMouseEvent): void {
+    const semitoneHeight = this.grid.getSemitoneHeight();
     const pos = this.getPosition();
 
-    if ((! this.isPianoRollVisible()) || event.position.x < pos.x + this.width / 2) {
-      // If we're not on the piano roll (bc it's hidden or clicking on its left)
-      this.dragStarted = true;
-    } else if (this.isPianoRollVisible() && event.position.x > pos.x + this.width / 2) {
-      // If we're on the piano roll
+    if (this.model.theme.isOnPianoRoll(event.position.x - pos.x, event.position.y - pos.y,
+        this.width, this.height, semitoneHeight)) {
       this.previewNoteAt(event.position.y);
+    } else {
+      this.dragStarted = true;
     }
 
     this.lastMouseX = event.position.x;
@@ -36,6 +37,7 @@ export class PitchRuler extends Component {
 
   public mouseDragged(event: ComponentMouseEvent): void {
     const pos = this.getPosition();
+    const semitoneHeight = this.grid.getSemitoneHeight();
 
     if (this.dragStarted) {
       const yOffset = event.position.y - this.lastMouseY;
@@ -53,7 +55,8 @@ export class PitchRuler extends Component {
           this.zoomOut();
         }
       }
-    } else if (this.isPianoRollVisible() && event.position.x > pos.x + this.width / 2) {
+    } else if (this.model.theme.isOnPianoRoll(event.position.x - pos.x, event.position.y - pos.y,
+        this.width, this.height,semitoneHeight)) {
       this.previewNoteAt(event.position.y);
     }
   }
@@ -91,29 +94,8 @@ export class PitchRuler extends Component {
     const start = this.model.verticalRange.start;
     const end = this.model.verticalRange.end;
     const semiHeight = this.grid.getSemitoneHeight();
-
-    // piano roll
-    if (this.isPianoRollVisible()) {
-      this.model.theme.drawPianoRoll(g, this.width, this.height, start, end, semiHeight, this.model.colors);
-
-      // left border
-      g.fillStyle = this.model.colors.strokeLight;
-      g.fillRect(bounds.width / 2, 0, 1, bounds.height);
-    }
-
-    // Octave labels
-    for (let i = 0; i < 128; i += 12) {
-      if (i >= start && i <= end) {
-        const y = bounds.height - (i - start) * semiHeight;
-        const txt = 'C' + ((i / 12) - 2);
-
-        g.fillStyle = this.model.colors.text;
-        g.fillText(txt, 2, y - 3, bounds.width / 2);
-
-        g.fillStyle = this.model.colors.strokeDark;
-        g.fillRect(0, y, bounds.width, 1);
-      }
-    }
+    this.model.theme.drawPitchRuler(g, this.width, this.height, start, end, semiHeight, this.hoveredPitch,
+      this.model.colors);
 
     // right border
     g.fillStyle = this.model.colors.strokeDark;
@@ -218,9 +200,5 @@ export class PitchRuler extends Component {
       this.currentlyZooming = !shouldTranslate;
       return shouldTranslate;
     }
-  }
-
-  private isPianoRollVisible(): boolean {
-    return this.grid.getSemitoneHeight() > MIN_SEMI_H;
   }
 }

@@ -3,6 +3,9 @@ import {getBackgroundAlternateWidth} from '../canvas-components/RenderHelpers';
 import {Colors, MAX_PITCH, PITCH_PATTERN, TimeSignature} from '../note-sequencer';
 
 export interface LookAndFeel {
+  name: string;
+
+  minSemitoneHeight: number;
 
   drawTimeBackground(g: CanvasRenderingContext2D, height: number, sixteenth: number,
                      incr: number, start: number, end: number, signature: TimeSignature, colors: Colors): void;
@@ -21,9 +24,21 @@ export interface LookAndFeel {
 
   drawPianoRoll(g: CanvasRenderingContext2D, width: number, height: number, start: number, end: number,
                 semiHeight: number, colors: Colors): void;
+
+  drawPitchLabels(g: CanvasRenderingContext2D, width: number, height: number, start: number, end: number, semiHeight: number,
+                  hoveredPitch: number, colors: Colors): void;
+
+  drawPitchRuler(g: CanvasRenderingContext2D, width: number, height: number, start: number, end: number, semiHeight: number,
+                 hoveredPitch: number, colors: Colors): void;
+
+  isOnPianoRoll(x: number, y: number, width: number, height: number, semitoneHeight: number): boolean;
 }
 
 export class LookAndFeel_Default implements LookAndFeel {
+
+  public readonly name: string = 'default';
+
+  public readonly minSemitoneHeight: number = 5;
 
   public drawTimeBackground(g: CanvasRenderingContext2D, height: number, sixteenth: number,
                             incr: number, start: number, end: number, signature: TimeSignature, colors: Colors): void {
@@ -153,6 +168,44 @@ export class LookAndFeel_Default implements LookAndFeel {
     }
   }
 
+  public drawPitchRuler(g: CanvasRenderingContext2D, width: number, height: number, start: number, end: number,
+                        semiHeight: number, hoveredPitch: number, colors: Colors): void {
+    // piano roll
+    if (this.isPianoRollVisible(semiHeight)) {
+      this.drawPianoRoll(g, width, height, start, end, semiHeight, colors);
+
+      // left border
+      g.fillStyle = colors.strokeLight;
+      g.fillRect(width / 2, 0, 1, height);
+    }
+
+    // Octave labels
+    this.drawPitchLabels(g, width, height, start, end, semiHeight, hoveredPitch, colors);
+  }
+
+  public drawPitchLabels(g: CanvasRenderingContext2D, width: number, height: number, start: number, end: number,
+                         semiHeight: number, hoveredPitch: number, colors: Colors): void {
+
+    const isPianoRollVisible = this.isPianoRollVisible(semiHeight);
+    const x = isPianoRollVisible ? width * 0.25 : width * 0.5;
+
+    for (let i = 0; i < 128; i += 12) {
+      if (i + 6 >= start && i <= end) {
+        const y = height - (i - start) * semiHeight;
+        const txt = '' + this.getOctaveNumber(i);
+
+        g.fillStyle = colors.text;
+        g.font = '11px Arial';
+        g.textBaseline = 'middle';
+        g.textAlign = 'center';
+        g.fillText(txt, x, y - 6 * semiHeight, width / 2);
+
+        g.fillStyle = colors.strokeDark;
+        g.fillRect(0, y, width, 1);
+      }
+    }
+  }
+
   public drawPianoRoll(g: CanvasRenderingContext2D, width: number, height: number, start: number, end: number,
                        semiHeight: number, colors: Colors): void {
     for (let i = Math.floor(start); i <= Math.ceil(end); ++i) {
@@ -173,9 +226,24 @@ export class LookAndFeel_Default implements LookAndFeel {
         width / 2, 1);
     }
   }
+
+  public isOnPianoRoll(x: number, y: number, width: number, height: number, semitoneHeight: number): boolean {
+    return this.isPianoRollVisible(semitoneHeight) && x > x + width / 2;
+  }
+
+  public isPianoRollVisible(semiHeight: number): boolean {
+    return semiHeight > this.minSemitoneHeight;
+  }
+
+  protected getOctaveNumber(pitchValue: number): number {
+    return Math.floor(pitchValue / 12) - 2;
+  }
 }
 
 export class LookAndFeel_Live extends LookAndFeel_Default {
+
+  public readonly name: string = 'live';
+
   public drawNote(g: CanvasRenderingContext2D, x: number, y: number, width: number, height: number,
                   velocity: number, selected: boolean, colors: Colors): void {
 
@@ -213,5 +281,22 @@ export class LookAndFeel_Live extends LookAndFeel_Default {
     g.arc(x, y, handleRadius, 0, Math.PI * 2);
     g.fill();
     g.stroke();
+  }
+
+  public drawPitchLabels(g: CanvasRenderingContext2D, width: number, height: number, start: number, end: number,
+                         semiHeight: number, hoveredPitch: number, colors: Colors): void {
+
+    for (let i = 0; i < 128; i += 12) {
+      if (i >= start && i <= end) {
+        const y = height - (i - start) * semiHeight;
+        const txt = 'C' + ((i / 12) - 2);
+
+        g.fillStyle = colors.text;
+        g.fillText(txt, 2, y - 3, width / 2);
+
+        g.fillStyle = colors.strokeDark;
+        g.fillRect(0, y, width, 1);
+      }
+    }
   }
 }

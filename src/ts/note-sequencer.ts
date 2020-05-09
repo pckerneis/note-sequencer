@@ -1,7 +1,7 @@
 import {RootComponentHolder} from './canvas-components/RootComponentHolder';
 import {SequencerRoot} from './canvas-components/SequencerRoot';
 import {CustomElement} from './custom-element/CustomElement';
-import {LookAndFeel, LookAndFeel_Default} from './themes/LookAndFeel';
+import {LookAndFeel, LookAndFeel_Default, LookAndFeel_Live} from './themes/LookAndFeel';
 
 export const MIN_SEMI_H: number = 4;
 export const MAX_SEMI_H: number = 30;
@@ -88,6 +88,7 @@ const defaultColors: Colors = {
 export class NoteSequencer extends CustomElement {
   public static readonly TIME_START: string = 'time-start';
   public static readonly DURATION: string = 'duration';
+  public static readonly THEME: string = 'theme';
 
   private _shadowRoot: ShadowRoot;
   private _rootHolder: RootComponentHolder<SequencerRoot>;
@@ -196,6 +197,34 @@ export class NoteSequencer extends CustomElement {
     numberValue = this._sequencerRoot.setDuration(numberValue);
 
     this.setAttribute(NoteSequencer.DURATION, numberValue.toString());
+  }
+
+  /**
+   * Set the current theme. Defaults to 'default'.
+   */
+  public get theme(): string {
+    return this._model.theme.name;
+  }
+
+  /**
+   * Set the current theme. Defaults to 'default'.
+   */
+  public set theme(value: string) {
+    switch(value) {
+      case 'live':
+        this._model.theme = new LookAndFeel_Live();
+        break;
+      case 'default':
+      default:
+        this._model.theme = new LookAndFeel_Default();
+        value = 'default';
+        break;
+    }
+
+    this.setAttribute(NoteSequencer.THEME, value);
+
+    this.draw();
+
   }
 
   // CustomElement implementation
