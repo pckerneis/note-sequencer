@@ -32,6 +32,8 @@ export interface LookAndFeel {
                  hoveredPitch: number, colors: Colors): void;
 
   isOnPianoRoll(x: number, y: number, width: number, height: number, semitoneHeight: number): boolean;
+
+  drawVelocityRuler(g: CanvasRenderingContext2D, width: number, height: number, colors: Colors): void;
 }
 
 export class LookAndFeel_Default implements LookAndFeel {
@@ -235,6 +237,35 @@ export class LookAndFeel_Default implements LookAndFeel {
     return semiHeight > this.minSemitoneHeight;
   }
 
+  public drawVelocityRuler(g: CanvasRenderingContext2D, width: number, height: number, colors: Colors): void {
+    const largeGradW = 10;
+    const smallGradW = 5;
+
+    g.fillStyle = colors.strokeDark;
+
+    // Ruler border
+    g.fillRect (width - 1, 0, 1, height);
+
+    // Top grad
+    g.fillRect(width - largeGradW, 0, largeGradW, 1);
+
+    // Mid grad
+    g.fillRect(width - largeGradW, Math.round(height * 0.5), largeGradW, 1);
+
+    // Bottom grad
+    g.fillRect(width - largeGradW, height - 1, largeGradW, 1);
+
+    // Intermediary grads
+    if (height > 60) {
+      g.fillRect(width - smallGradW, Math.round(height * 0.25), smallGradW, 1);
+      g.fillRect(width - smallGradW, Math.round(height * 0.75), smallGradW, 1);
+    }
+
+    g.fillStyle = colors.text;
+    g.fillText("0", width - 20, height - 2);
+    g.fillText("100%", width - 30, 12);
+  }
+
   protected getOctaveNumber(pitchValue: number): number {
     return Math.floor(pitchValue / 12) - 2;
   }
@@ -298,5 +329,33 @@ export class LookAndFeel_Live extends LookAndFeel_Default {
         g.fillRect(0, y, width, 1);
       }
     }
+  }
+
+  public drawVelocityRuler(g: CanvasRenderingContext2D, width: number, height: number, colors: Colors): void {
+    const largeGradW = 10;
+    const smallGradW = 5;
+    const labelRightMargin = 14;
+
+    g.fillStyle = colors.strokeDark;
+    g.textAlign = 'right';
+
+    // Ruler border
+    g.fillRect (width - 1, 0, 1, height);
+
+    // Top grad
+    g.fillRect(width - largeGradW, 0, largeGradW, 1);
+    g.fillStyle = colors.text;
+    g.fillText("127", width - labelRightMargin, 12);
+
+    g.fillStyle = colors.strokeDark;
+
+    // Mid grad
+    g.fillRect(width - smallGradW, Math.round(height * 0.5), smallGradW, 1);
+
+    // Bottom grad
+    g.fillRect(width - largeGradW, height - 1, largeGradW, 1);
+
+    g.fillStyle = colors.text;
+    g.fillText("0", width - labelRightMargin, height - 2);
   }
 }
