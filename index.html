@@ -31,11 +31,11 @@
           <h4>Time range</h4>
           <div class="property-row">
             <label title="" for="time-start">start</label>
-            <input value="0" type="number" id="time-start" class="input-range" min="0" max="126" />
+            <input value="0" type="number" id="time-start" class="input-range" min="0" max="126" step="0.25" />
           </div>
           <div class="property-row">
             <label title="" for="duration">duration</label>
-            <input value="16" type="number" id="duration" class="input-range" min="0" max="126" />
+            <input value="16" type="number" id="duration" class="input-range" min="0" max="126" step="0.25" />
           </div>
           <h4>Pitch range</h4>
           <div class="property-row">
@@ -57,6 +57,10 @@
 
 
   <script>
+    function getCssName(propertyName) {
+      return '--' + propertyName.split(/(?=[A-Z])/).join('-').toLowerCase();
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const colorsContainer = document.querySelector('#colors-container');
       const codeContainer = document.querySelector('#code');
@@ -70,39 +74,28 @@
 
 
       function refreshComponent() {
-        noteSequencer.timeStart = timeStart.value;
-        noteSequencer.duration = duration.value;
+        noteSequencer.timeStart = Number(timeStart.value);
+        noteSequencer.duration = Number(duration.value);
 
         codeContainer.innerText = noteSequencer.outerHTML;
       }
 
-      function midiNoteName(noteNumber) {
-        if (noteNumber == null) {
-          return 'none'
-        }
+      Object.keys(noteSequencer.colors).forEach((key) => {
+        prepareColorPicker(key, noteSequencer.colors[key]);
+      });
 
-        const pitchNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-        const pitch = noteNumber % 12;
-        const octave = Math.floor(noteNumber / 12) - 2;
-        return pitchNames[pitch] + octave.toFixed(0);
-      }
-
-      prepareColorPicker('background', '#ffffff');
-      prepareColorPicker('backgroundAlternate', '#eeeeee');
-      // ...
-
-      function prepareColorPicker(attributeName, defaultValue) {
+      function prepareColorPicker(colorName, defaultValue) {
         const colorPicker = document.createElement('input');
         colorPicker.type = 'color';
         colorPicker.value = defaultValue;
 
         const label = document.createElement('label');
         const span = document.createElement('span');
-        span.innerText = attributeName;
+        span.innerText = colorName;
         label.append(colorPicker, span);
 
         colorPicker.addEventListener('change', () => {
-          pianoKeys[attributeName] = colorPicker.value;
+          noteSequencer.style.setProperty(getCssName(colorName), colorPicker.value);
           refreshComponent();
         });
 

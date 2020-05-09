@@ -1,5 +1,6 @@
 import {RootComponentHolder} from './canvas-components/RootComponentHolder';
 import {SequencerRoot} from './canvas-components/SequencerRoot';
+import {CustomElement} from './custom-element/CustomElement';
 
 export const MIN_SEMI_H: number = 4;
 export const MAX_SEMI_H: number = 30;
@@ -81,8 +82,7 @@ const defaultColors: Colors = {
  *
  * @noInheritDoc
  */
-export class NoteSequencer extends HTMLElement {
-
+export class NoteSequencer extends CustomElement {
   public static readonly TIME_START: string = 'time-start';
   public static readonly DURATION: string = 'duration';
 
@@ -118,6 +118,16 @@ export class NoteSequencer extends HTMLElement {
     // Events handlers
     const resizeObserver = new ResizeObserver(() => this.resizeAndDraw());
     resizeObserver.observe(this);
+
+    const styleObserver = new MutationObserver(() => {
+      this.styleChanged();
+    });
+
+    styleObserver.observe(this, { attributes: true });
+
+    Object.keys(this._model.colors).forEach((key) => {
+      this.registerCustomColor(key, this._model.colors[key]);
+    });
   }
 
   /**
@@ -137,6 +147,10 @@ export class NoteSequencer extends HTMLElement {
       'pitch-start',
       'pitch-end',
     ];
+  }
+
+  public get colors(): Colors {
+    return this._model.colors;
   }
 
   // Attributes/properties reflection
@@ -180,7 +194,7 @@ export class NoteSequencer extends HTMLElement {
     this.setAttribute(NoteSequencer.DURATION, numberValue.toString());
   }
 
-  // _________________
+  // CustomElement implementation
 
   /**
    * Called when the HTML node is first connected to the DOM (custom element implementation).
@@ -207,6 +221,16 @@ export class NoteSequencer extends HTMLElement {
 
   public draw(): void {
     this._rootHolder.repaint();
+  }
+
+  protected styleChanged(): void {
+    super.styleChanged();
+
+    this.customColors.forEach((color) => {
+      this._model.colors[color.name] = color.value;
+    });
+
+    this.draw();
   }
 
   private resizeAndDraw(): void {
