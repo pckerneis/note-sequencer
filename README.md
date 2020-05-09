@@ -6,14 +6,23 @@
 
 **note-sequencer** is a lightweight interactive and customizable note sequencer. It is based on Custom Elements and Canvas APIs.
 
-![alt text](https://github.com/pckerneis/note-sequencer/raw/master/docs/img/main.png "note-sequencer screenshot")
+![alt text](https://github.com/pckerneis/note-sequencer/raw/master/docs/img/main-demo.gif "note-sequencer screenshot")
+
+- See the [usage guide](https://pckerneis.github.io/note-sequencer)
+
+> This project is a work in progress.
+>
+> Some basic features are still to implement: save/load, programmatic scroll, play bar... 
+>
+> The interaction with sound generators has to be carefully designed so the overall API may change a lot.
+>
+> If you wan't to get involve or share your thoughts, feel free to get in touch 
 
 **Key features**
 - Grid snap
 - Multi-selection with keyboard and lasso
 - All colors are customizable
 - Cross-browser and dependency free
-- Lightweight: the minified source is ~33kB
 
 ## Installation
 
