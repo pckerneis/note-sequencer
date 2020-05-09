@@ -23,9 +23,12 @@ export class RootComponentHolder<T extends Component> {
     this.initMouseEventListeners();
   }
 
-  public render(): void {
-    // Recursively paint components that need to be refreshed
-    this.rootComponent.paint(this.canvas.getContext('2d'));
+  public get renderingContext(): CanvasRenderingContext2D {
+    return this.canvas.getContext('2d');
+  }
+
+  public repaint(): void {
+    this.rootComponent.repaint();
   }
 
   public resize(width: number, height: number): void {

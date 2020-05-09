@@ -67,6 +67,9 @@ export interface ComponentMouseEvent {
   modifiers: {shift: boolean, option: boolean}
 }
 
+/**
+ * A node in a canvas-based component tree.
+ */
 export abstract class Component {
 
   private _children: Component[] = [];
@@ -224,26 +227,13 @@ export abstract class Component {
 
       // Render
       if (root._rootHolder != null) {
-        root._rootHolder.render();
+        root.paint(root._rootHolder.renderingContext);
       }
     }
   }
 
-  public paint(context: CanvasRenderingContext2D): void {
-    if (this._visible && this._needRepaint && Math.floor(this._bounds.width) > 0 && Math.floor(this._bounds.height) > 0) {
-      const g = Component.createOffscreenCanvas(Math.ceil(this._bounds.width), Math.ceil(this._bounds.height));
+  // Mouse events
 
-      this.render(g.getContext('2d'));
-
-      context.drawImage(g, Math.floor(this._bounds.x), Math.floor(this._bounds.y));
-    }
-
-    this._children.forEach(child => child.paint(context));
-
-    this._needRepaint = false;
-  }
-
-  // These functions should be overridden by sub comps
   public mouseMoved(event: ComponentMouseEvent): void {
     this._beingDragged = event.isDragging && event.pressedComponent === this;
   }
@@ -286,8 +276,29 @@ export abstract class Component {
   public doubleClicked(event: ComponentMouseEvent): void {
   }
 
+  // Resizing and rendering
+
   protected abstract resized(): void;
 
   protected abstract render(g: CanvasRenderingContext2D): void;
 
+  /**
+   * Renders this component and its children on a canvas rendering context. This method shouldn't be used directly and
+   * 'repaint' should be used instead when the component needs to be re-rendered.
+   *
+   * @param context the canvas context to use
+   */
+  private paint(context: CanvasRenderingContext2D): void {
+    if (this._visible && this._needRepaint && Math.floor(this._bounds.width) > 0 && Math.floor(this._bounds.height) > 0) {
+      const g = Component.createOffscreenCanvas(Math.ceil(this._bounds.width), Math.ceil(this._bounds.height));
+
+      this.render(g.getContext('2d'));
+
+      context.drawImage(g, Math.floor(this._bounds.x), Math.floor(this._bounds.y));
+    }
+
+    this._children.forEach(child => child.paint(context));
+
+    this._needRepaint = false;
+  }
 }

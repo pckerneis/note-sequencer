@@ -219,7 +219,7 @@ export class NoteSequencer extends HTMLElement {
   }
 
   public draw(): void {
-    this._rootHolder.render();
+    this._rootHolder.repaint();
   }
 
   private resizeAndDraw(): void {
