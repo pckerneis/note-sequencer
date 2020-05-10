@@ -8,8 +8,10 @@
     "webpack": "webpack --config webpack.config.js --display-error-details",
     "dev": "webpack-dev-server --open",
     "dev-hot": "webpack-dev-server --open --hot",
-    "doc": "typedoc"
+    "doc": "typedoc",
+    "build": "tsc"
   },
+  "main": "lib/index.js",
   "private": true,
   "devDependencies": {
     "@microsoft/tsdoc": "^0.12.18",
@@ -22,6 +24,5 @@
     "webpack-cli": "^3.3.11",
     "webpack-dev-server": "^3.10.3"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }

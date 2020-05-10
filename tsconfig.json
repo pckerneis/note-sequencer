@@ -1,6 +1,6 @@
-{ 
+{
   "compilerOptions": {
-    "target": "es2015",
+    "target": "es6",
     "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true,
@@ -9,7 +9,9 @@
     "removeComments": false,
     "noImplicitAny": true,
     "suppressImplicitAnyIndexErrors": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "declaration": true,
+    "outDir": "./lib"
   },
   "include": [
       "src/ts/**/*"
@@ -17,11 +19,11 @@
   "exclude": [ "node_modules" ],
   "typedocOptions": {
     "inputFiles": [
-      "./src/ts/piano-keys.ts"
+      "./src/ts/note-sequencer.ts"
     ],
     "mode": "module",
     "out": "doc",
-    "name": "PianoKeys API documentation",
+    "name": "NoteSequencer API documentation",
     "includeVersion": true,
     "excludePrivate": true,
     "excludeNotExported": true,
@@ -29,4 +31,3 @@
     "readme": "./docs/README.md"
   }
 }
-  
