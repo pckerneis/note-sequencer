@@ -99,8 +99,8 @@ export class NoteSequencer extends CustomElement {
     super();
 
     this._model = {
-      velocityTrackHeight: -0.2,
-      verticalRange: {start: 58, end: 58 + 24},
+      velocityTrackHeight: -0.3,
+      verticalRange: {start: 60, end: 72},
       visibleTimeRange: {start: 0, end: 16},
       maxTimeRange: {start: 0, end: 16},
       signature: {upper: 4, lower: 4},
