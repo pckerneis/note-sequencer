@@ -1,4 +1,5 @@
 node_modules/
 doc/
 .idea/
-dist/
+/dist/
+/lib/
