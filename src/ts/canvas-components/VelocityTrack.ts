@@ -135,8 +135,12 @@ export class VelocityTrack extends Component {
 
     for (const note of this.grid.notes) {
       const x = this.grid.getPositionForTime(note.time);
+      console.log(note.duration);
+      const w = Math.max(0, hScale * (note.tempDuration || note.duration));
 
-      if (x + note.duration * hScale < -5 || x > this.width + 5)
+      console.log(x, w);
+
+      if (x + w < -5 || x > this.width + 5)
         continue;
 
       this.model.theme.drawVelocityHandle(g, x, note, this.width, this.height, vScale, hScale,

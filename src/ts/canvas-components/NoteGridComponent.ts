@@ -188,7 +188,7 @@ export class NoteGridComponent extends Component {
   public getSemitoneHeight(): number {
     return this.height / (this.model.verticalRange.end - this.model.verticalRange.start);
   }
-  
+
   //===============================================================================
   // Mouse event handlers
 
@@ -646,9 +646,7 @@ export class NoteGridComponent extends Component {
 
       const x = this.getPositionForTime(n.time);
       const y = this.getPositionForPitch(n.pitch);
-      const d = n.tempDuration != null ? n.tempDuration : n.duration;
-      const w = Math.max(2, d * sixteenth);
-
+      const w = Math.max(0, n.tempDuration != null ? n.tempDuration * sixteenth : n.duration * sixteenth);
       this.model.theme.drawNote(g, x, y, w, semiHeight, n.velocity, n.selected, this.model.colors);
     }
   }
@@ -686,8 +684,11 @@ export class NoteGridComponent extends Component {
         } else {
           // If selected overlaps over note, shorten note
           if (selected.time < note.time + note.duration) {
-            if (apply)  note.duration = selected.time - note.time;
-            else        note.tempDuration = selected.time - note.time;
+            if (apply) {
+              note.duration = selected.time - note.time;
+            } else {
+              note.tempDuration = Math.max(0, selected.time - note.time);
+            }
           }
         }
       }
@@ -697,7 +698,7 @@ export class NoteGridComponent extends Component {
   }
 
   private getDragActionForNoteAt(pos: ComponentPosition, n: Note): DragAction {
-    const margin = 2;
+    const margin = 3;
     const noteX = this.getPositionForTime (n.time);
     const noteW = Math.max (2, n.duration * this.getSixteenthWidth());
     const localPos = pos.x - noteX;

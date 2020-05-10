@@ -75,7 +75,7 @@ export class LookAndFeel_Default implements LookAndFeel {
   public drawNote(g: CanvasRenderingContext2D, x: number, y: number, width: number, height: number,
                   velocity: number, selected: boolean, colors: Colors): void {
 
-    const cornerRadius = Math.min(4, height * 0.4);
+    const cornerRadius = Math.max(0, Math.min(4, height * 0.4, width));
 
     // angles
     const halfRad = Math.PI;
@@ -115,7 +115,7 @@ export class LookAndFeel_Default implements LookAndFeel {
       return;
     }
 
-    const w = hScale * (note.tempDuration ? note.tempDuration : note.duration);
+    const w = Math.max(0, hScale * (note.tempDuration ? note.tempDuration : note.duration));
     const y = (height - note.velocity * vScale);
     const endingH = 6;
 
