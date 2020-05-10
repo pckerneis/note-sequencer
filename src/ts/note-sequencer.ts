@@ -13,7 +13,7 @@ export const MAX_VELOCITY: number = 127;
 declare class ResizeObserver {
   constructor(...args: any[]);
 
-  public observe(...elements: HTMLElement[]): any;
+  public observe(element: HTMLElement, options?: any): any;
 }
 
 export interface Range {
@@ -118,7 +118,7 @@ export class NoteSequencer extends CustomElement {
     this._shadowRoot.append(this._rootHolder.canvas);
 
     const styleElement = document.createElement('style');
-    styleElement.innerText = CSS_STYLE;
+    styleElement.innerHTML = CSS_STYLE;
     this._shadowRoot.append(styleElement);
 
     // Events handlers
@@ -275,19 +275,19 @@ export class NoteSequencer extends CustomElement {
 
 const CSS_STYLE = `
 :host {
-  display: block;
-}
-
-note-sequencer {
-  box-sizing: border-box;
-  display: block;
   position: relative;
+  min-width: 200px;
+  min-height: 200px;
   width: 100%;
   height: 100%;
+  display: inline-block;
 }
 
-note-sequencer canvas {
-  box-sizing: border-box;
-  margin: 0;
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 `;
