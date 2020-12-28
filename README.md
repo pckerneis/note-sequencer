@@ -10,13 +10,11 @@
 
 - See the [usage guide](https://pckerneis.github.io/note-sequencer)
 
-> This project is a work in progress.
+> This project is a quick prototype and I don't plan maintaining it further.
 >
 > Some basic features are still to implement: save/load, programmatic scroll, play bar... 
 >
-> The interaction with sound generators is not clearly defined yet so the overall API may change a lot.
->
-> If you wan't to get involved or share your thoughts, feel free to get in touch 
+> Feel free to contribute, fork the code or even copy-paste the stuff you're interested in.
 
 **Key features**
 - Grid snap
