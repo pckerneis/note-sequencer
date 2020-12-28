@@ -10,7 +10,7 @@
 
 - See the [usage guide](https://pckerneis.github.io/note-sequencer)
 
-> This project is a quick prototype and I don't plan maintaining it further.
+> **Important note** : This project is a quick prototype and I don't plan maintaining it further.
 >
 > Some basic features are still to implement: save/load, programmatic scroll, play bar... 
 >
